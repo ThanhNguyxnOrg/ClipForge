@@ -91,7 +91,22 @@ if(CLIPFORGE_BUILD_TESTS)
 endif()
 
 if(CLIPFORGE_BUILD_QT_UI)
-    find_package(Qt6 6.8 COMPONENTS Quick QuickTest Test Gui REQUIRED)
+    find_package(Qt6 6.8 COMPONENTS Quick QuickTest Test Gui Concurrent REQUIRED)
     qt_standard_project_setup(REQUIRES 6.5)
+
+    add_library(clipforge_qt STATIC
+        apps/qt/BatchQueueModel.cpp
+        apps/qt/EngineBridge.cpp
+    )
+    target_include_directories(clipforge_qt PUBLIC apps/qt)
+    target_link_libraries(clipforge_qt PUBLIC Qt6::Core Qt6::Concurrent clipforge_core)
+
+    qt_add_executable(clipforge-ui apps/qt/main.cpp)
+    target_link_libraries(clipforge-ui PRIVATE Qt6::Gui Qt6::Quick clipforge_qt clipforge_core)
+
+    add_executable(tst_bridge apps/qt/tests/tst_bridge.cpp)
+    target_link_libraries(tst_bridge PRIVATE Qt6::Test Qt6::Core clipforge_qt clipforge_core)
+    add_test(NAME clipforge.qt_bridge COMMAND tst_bridge)
+
     message(STATUS "ClipForge: Qt 6 Quick UI enabled.")
 endif()
