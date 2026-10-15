@@ -1,0 +1,99 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build: tests (g++)",
+      "type": "shell",
+      "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+      "args": [
+        "-std=c++23",
+        "-DCLIPFORGE_HAS_NASM_X64=0",
+        "-Iinclude",
+        "src/dsp/cpp/kernels_cpp.cpp",
+        "src/dsp/dispatch.cpp",
+        "src/audio/wav_reader.cpp",
+        "src/audio/wav_writer.cpp",
+        "src/processing/analyzer.cpp",
+        "src/processing/normalizer.cpp",
+        "src/processing/silence_trimmer.cpp",
+        "src/services/engine_facade.cpp",
+        "tests/test_main.cpp",
+        "tests/audio/test_wav_io.cpp",
+        "tests/processing/test_processing.cpp",
+        "tests/dsp/test_dsp_differential.cpp",
+        "-o",
+        "${workspaceFolder}/build/vscode/clipforge-tests.exe"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "build: cli (g++)",
+      "type": "shell",
+      "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+      "args": [
+        "-std=c++23",
+        "-DCLIPFORGE_HAS_NASM_X64=0",
+        "-Iinclude",
+        "apps/cli/main.cpp",
+        "src/dsp/cpp/kernels_cpp.cpp",
+        "src/dsp/dispatch.cpp",
+        "src/audio/wav_reader.cpp",
+        "src/audio/wav_writer.cpp",
+        "src/processing/analyzer.cpp",
+        "src/processing/normalizer.cpp",
+        "src/processing/silence_trimmer.cpp",
+        "src/services/engine_facade.cpp",
+        "-o",
+        "${workspaceFolder}/build/vscode/clipforge-cli.exe"
+      ],
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "build: bench (g++)",
+      "type": "shell",
+      "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+      "args": [
+        "-std=c++23",
+        "-O2",
+        "-DCLIPFORGE_HAS_NASM_X64=0",
+        "-Iinclude",
+        "benchmarks/main_bench.cpp",
+        "src/dsp/cpp/kernels_cpp.cpp",
+        "src/dsp/dispatch.cpp",
+        "src/audio/wav_reader.cpp",
+        "src/audio/wav_writer.cpp",
+        "src/processing/analyzer.cpp",
+        "src/processing/normalizer.cpp",
+        "src/processing/silence_trimmer.cpp",
+        "src/services/engine_facade.cpp",
+        "-o",
+        "${workspaceFolder}/build/vscode/clipforge-bench.exe"
+      ],
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "build: all (g++)",
+      "dependsOn": ["build: tests (g++)", "build: cli (g++)", "build: bench (g++)"],
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "test: run all",
+      "type": "shell",
+      "command": "${workspaceFolder}/build/vscode/clipforge-tests.exe",
+      "args": ["all"],
+      "dependsOn": "build: tests (g++)",
+      "group": { "kind": "test", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "shared" }
+    }
+  ]
+}

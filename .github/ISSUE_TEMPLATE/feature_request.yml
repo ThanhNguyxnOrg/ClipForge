@@ -1,0 +1,30 @@
+name: ✨ Feature request
+description: Suggest an idea for ClipForge
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: Love new ideas! Tell us the problem first, then the proposal. 💡
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      placeholder: As a podcaster, I need ... because ...
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      placeholder: Add `clipforge-cli ...` that ...
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [CLI, DSP/ASM, WAV I/O, Processing, Batch/Facade, Docs, CI, Qt UI, Other]

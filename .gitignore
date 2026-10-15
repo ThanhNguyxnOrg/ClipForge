@@ -1,0 +1,49 @@
+# Build output
+build/
+out/
+install/
+
+# Compiled objects & binaries
+*.obj
+*.o
+*.a
+*.lib
+*.so
+*.dll
+*.exe
+*.pdb
+*.ilk
+*.exp
+
+# CMake
+CMakeUserPresets.json
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+
+# ClipForge artifacts
+*.csv
+*.clipforge.tmp
+benchmark_results.csv
+
+# IDE
+.vs/
+.idea/
+*.user
+*.suo
+*.sln.docstates.json
+
+# VSCode (keep shared tasks/settings, ignore personal state)
+.vscode/ipch/
+.vscode/.ropeproject/
+*.code-workspace.history
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Audio test fixtures (local only)
+*.wav
+!tests/**/*.wav

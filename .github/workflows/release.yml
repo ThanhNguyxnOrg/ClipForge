@@ -1,0 +1,198 @@
+name: Release 📦
+
+# ClipForge Windows x64 release pipeline.
+# Conventions borrowed from ThanhNguyxnOrg (PurgeKit release-windows.yml,
+# lumeo release.yml) with the audit fixes applied:
+# - Build + CTest + ASM gate run IN THIS WORKFLOW before any publish.
+#   A separately-green CI on the same SHA is never assumed.
+# - Version comes from ONE source of truth (CMakeLists.txt PROJECT VERSION)
+#   cross-checked against the trigger and CHANGELOG.md.
+# - Tags are `vX.Y.Z`; existing releases are updated idempotently, never duplicated.
+# - Bot identity: ThanhNguyxnAgent[bot] via BOT_APP_ID / BOT_PRIVATE_KEY.
+# - Never put `[skip ci]` on a release commit — GitHub would skip this workflow.
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v0.1.0). Empty = read CMakeLists.txt."
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  check-trigger:
+    name: 🔍 Decide release plan
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
+    outputs:
+      is_release: ${{ steps.plan.outputs.is_release }}
+      version: ${{ steps.plan.outputs.version }}
+      tag: ${{ steps.plan.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine release plan
+        id: plan
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          INPUT_TAG: ${{ inputs.tag }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -e
+          CMAKE_VER=$(grep -oP 'project\(ClipForge\s+VERSION\s+\K[0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt | head -n 1)
+          echo "CMakeLists version: $CMAKE_VER"
+          test -n "$CMAKE_VER" || { echo "::error::Cannot parse PROJECT VERSION from CMakeLists.txt"; exit 1; }
+
+          VERSION=""; SHOULD="false"
+
+          if [ "$REF_TYPE" = "tag" ]; then
+            # Tag push: vX.Y.Z
+            VERSION="${REF_NAME#v}"
+            SHOULD="true"
+            echo "Tag trigger: $REF_NAME -> $VERSION"
+          elif [ -n "$INPUT_TAG" ]; then
+            VERSION="${INPUT_TAG#v}"
+            SHOULD="true"
+            echo "Manual trigger: $INPUT_TAG -> $VERSION"
+          else
+            FIRST_LINE=$(echo "$COMMIT_MSG" | head -n 1)
+            echo "Commit header: $FIRST_LINE"
+            if [[ "$FIRST_LINE" =~ ^[Rr]elease:?[[:space:]]+v?([0-9]+\.[0-9]+\.[0-9]+[a-zA-Z0-9\.-]*) ]] || \
+               [[ "$FIRST_LINE" =~ ^chore\(release\):?[[:space:]]+v?([0-9]+\.[0-9]+\.[0-9]+[a-zA-Z0-9\.-]*) ]] || \
+               [[ "$FIRST_LINE" =~ ^\[release\][[:space:]]+v?([0-9]+\.[0-9]+\.[0-9]+[a-zA-Z0-9\.-]*) ]] || \
+               [[ "$FIRST_LINE" =~ ^bump:?[[:space:]]+v?([0-9]+\.[0-9]+\.[0-9]+[a-zA-Z0-9\.-]*) ]]; then
+              VERSION="${BASH_REMATCH[1]}"
+              VERSION="${VERSION#v}"
+              SHOULD="true"
+              echo "Release commit detected -> $VERSION"
+            else
+              echo "No release trigger — skipping."
+            fi
+          fi
+
+          if [ "$SHOULD" = "true" ]; then
+            if [ "$VERSION" != "$CMAKE_VER" ]; then
+              echo "::error::Trigger version ($VERSION) != CMakeLists.txt ($CMAKE_VER). Bump CMakeLists.txt first."
+              exit 1
+            fi
+            if ! grep -q "## \[$VERSION\]" CHANGELOG.md; then
+              echo "::error::CHANGELOG.md has no [## [$VERSION]] entry. Add release notes first."
+              exit 1
+            fi
+            echo "is_release=true" >> "$GITHUB_OUTPUT"
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+            echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-release:
+    name: 🪟 Build, verify & publish (windows-x64)
+    needs: check-trigger
+    if: needs.check-trigger.outputs.is_release == 'true'
+    runs-on: windows-latest
+    steps:
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install NASM (before configure!)
+        run: choco install nasm --no-progress -y
+
+      - name: NASM on PATH
+        run: nasm -v
+
+      - name: Configure (Release)
+        run: cmake --preset windows-x64-release
+
+      - name: Build
+        run: cmake --build --preset windows-x64-release
+
+      - name: Test (CTest — must be green before publish)
+        run: ctest --preset windows-x64-release --output-on-failure
+
+      - name: Assert ASM backend linked
+        shell: pwsh
+        run: |
+          $out = & .\build\release\clipforge-bench.exe --csv $env:TEMP\release_gate.csv
+          $out | ForEach-Object { Write-Host $_ }
+          if ($out -notmatch 'ASM Backend Compiled:\s*YES') {
+            Write-Error "Release requires the NASM SSE2 backend (got C++-only). Fix NASM/CMake before releasing."
+            exit 1
+          }
+
+      - name: Extract CHANGELOG entry
+        id: notes
+        shell: pwsh
+        run: |
+          $version = "${{ needs.check-trigger.outputs.version }}"
+          $clean = $version.TrimStart('v')
+          $log = Get-Content CHANGELOG.md -Raw
+          $pattern = "(?s)##\s*\[?" + [regex]::Escape($clean) + "\]?.*?\r?\n(.*?)(?=\r?\n##\s*\[?v?\d|\Z)"
+          if ($log -match $pattern) { $body = $Matches[1].Trim() }
+          else { $body = "Release ClipForge v$clean" }
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "body<<EOF"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value $body
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "EOF"
+
+      - name: Package artifacts
+        shell: pwsh
+        run: |
+          $ver = "${{ needs.check-trigger.outputs.version }}"
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Copy-Item build/release/clipforge-cli.exe artifacts/ClipForge-cli-$ver-windows-x64.exe -Force
+          Copy-Item build/release/clipforge-tests.exe artifacts/ClipForge-tests-$ver-windows-x64.exe -Force
+          Copy-Item build/release/clipforge-bench.exe artifacts/ClipForge-bench-$ver-windows-x64.exe -Force
+          Copy-Item README.md, CHANGELOG.md, LICENSE artifacts/ -Force
+          Compress-Archive -Path artifacts/* -DestinationPath artifacts/ClipForge-$ver-windows-x64.zip -Force
+          Get-ChildItem artifacts | Format-Table Name, Length
+
+      - name: 🏷️ Ensure Git tag exists
+        shell: bash
+        env:
+          TAG: ${{ needs.check-trigger.outputs.tag }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            git config user.name "ThanhNguyxnAgent[bot]"
+            git config user.email "296222857+thanhnguyxnagent[bot]@users.noreply.github.com"
+            git tag -a "$TAG" -m "Release $TAG"
+            git push origin "$TAG"
+            echo "Created and pushed $TAG"
+          else
+            echo "Tag $TAG already exists."
+          fi
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.check-trigger.outputs.tag }}
+          name: "ClipForge ${{ needs.check-trigger.outputs.tag }}"
+          body: ${{ steps.notes.outputs.body }}
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/ClipForge-${{ needs.check-trigger.outputs.version }}-windows-x64.zip
+            artifacts/ClipForge-cli-${{ needs.check-trigger.outputs.version }}-windows-x64.exe
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}

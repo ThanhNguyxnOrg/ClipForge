@@ -1,0 +1,49 @@
+name: 🐛 Bug report
+description: Report a reproducible ClipForge bug
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting! Please fill in everything — it makes fixes much faster. 💖
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+      placeholder: e.g. v0.1.0, commit abc1234
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: OS
+      options: [Windows 11 x64, Windows 10 x64, Ubuntu (CI), Other]
+    validations:
+      required: true
+  - type: dropdown
+    id: backend
+    attributes:
+      label: DSP backend
+      options: [auto, cpp, asm]
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction steps + CLI command
+      placeholder: |
+        1. clipforge-cli.exe analyze sample.wav ...
+        2. Expected ... / got ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / exit code / CSV excerpt
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Sample file info (no private audio!)
+      description: Describe the WAV (sr, channels, format) or attach a synthetic repro. Never upload private voice.
