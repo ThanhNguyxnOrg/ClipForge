@@ -30,7 +30,7 @@ jobs:
       - name: Check CMakeLists version vs CHANGELOG
         run: |
           set -e
-          VER=$(grep -oP 'project\(ClipForge\s+VERSION\s+\K[0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt | head -n 1)
+          VER=$(grep -oE 'VERSION [0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt | head -n 1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
           echo "CMakeLists version: $VER"
           test -n "$VER" || { echo "::error::Could not parse project VERSION from CMakeLists.txt"; exit 1; }
           grep -q "## \[$VER\]" CHANGELOG.md || grep -q "## \[Unreleased\]" CHANGELOG.md || {

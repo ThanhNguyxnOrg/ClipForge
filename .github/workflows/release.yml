@@ -48,7 +48,7 @@ jobs:
           REF_NAME: ${{ github.ref_name }}
         run: |
           set -e
-          CMAKE_VER=$(grep -oP 'project\(ClipForge\s+VERSION\s+\K[0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt | head -n 1)
+          CMAKE_VER=$(grep -oE 'VERSION [0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt | head -n 1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
           echo "CMakeLists version: $CMAKE_VER"
           test -n "$CMAKE_VER" || { echo "::error::Cannot parse PROJECT VERSION from CMakeLists.txt"; exit 1; }
 
