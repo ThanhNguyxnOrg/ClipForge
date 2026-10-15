@@ -136,7 +136,10 @@ jobs:
         run: |
           $out = & .\build\release\clipforge-bench.exe --csv $env:TEMP\release_gate.csv
           $out | ForEach-Object { Write-Host $_ }
-          if ($out -notmatch 'ASM Backend Compiled:\s*YES') {
+          # NOTE: -match on an array returns matches (empty = falsy). Do NOT use
+          # `-notmatch` here: on arrays it acts as a filter and is always truthy.
+          $asmYes = @($out | Select-String -Pattern 'ASM Backend Compiled:\s*YES')
+          if ($asmYes.Count -eq 0) {
             Write-Error "Release requires the NASM SSE2 backend (got C++-only). Fix NASM/CMake before releasing."
             exit 1
           }

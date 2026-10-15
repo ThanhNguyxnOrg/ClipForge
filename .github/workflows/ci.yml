@@ -127,7 +127,10 @@ jobs:
           # clipforge-bench prints "ASM Backend Compiled: YES" only when NASM objects linked.
           $out = & .\build\release\clipforge-bench.exe --csv $env:TEMP\asm_gate.csv
           $out | ForEach-Object { Write-Host $_ }
-          if ($out -notmatch 'ASM Backend Compiled:\s*YES') {
+          # NOTE: -match on an array returns matches (empty = falsy). Do NOT use
+          # `-notmatch` here: on arrays it acts as a filter and is always truthy.
+          $asmYes = @($out | Select-String -Pattern 'ASM Backend Compiled:\s*YES')
+          if ($asmYes.Count -eq 0) {
             Write-Error "ASM backend NOT compiled in — refusing to fake-pass. Check NASM install + CMake preset."
             exit 1
           }
