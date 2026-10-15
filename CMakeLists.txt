@@ -58,9 +58,11 @@ target_compile_definitions(clipforge_core
 )
 
 if(MSVC)
-    target_compile_options(clipforge_core PRIVATE /W4 /permissive- /EHsc)
+    # Scope MSVC flags to C++ only: they are not valid NASM options and
+    # CMake would otherwise forward them to the ASM_NASM compile line.
+    target_compile_options(clipforge_core PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/W4 /permissive- /EHsc>)
 else()
-    target_compile_options(clipforge_core PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(clipforge_core PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wextra -Wpedantic>)
 endif()
 
 if(CLIPFORGE_BUILD_CLI)
