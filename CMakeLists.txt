@@ -91,5 +91,7 @@ if(CLIPFORGE_BUILD_TESTS)
 endif()
 
 if(CLIPFORGE_BUILD_QT_UI)
-    message(STATUS "ClipForge: Qt 6 UI phase is scheduled for Phase 2. Core library 'clipforge_core' is ready for linking.")
+    find_package(Qt6 6.8 COMPONENTS Quick QuickTest Test Gui REQUIRED)
+    qt_standard_project_setup(REQUIRES 6.5)
+    message(STATUS "ClipForge: Qt 6 Quick UI enabled.")
 endif()

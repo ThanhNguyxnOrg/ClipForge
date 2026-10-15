@@ -138,3 +138,40 @@ jobs:
           & .\build\release\clipforge-cli.exe --help | Out-Null
           if ($LASTEXITCODE -ne 0) { Write-Error "CLI smoke failed"; exit 1 }
           Write-Host "ASM gate OK ✅"
+
+  build-test-qt:
+    name: 🖥️ Qt 6 Quick (windows)
+    runs-on: windows-latest
+    needs: [version-check, build-test-ubuntu, build-test-windows]
+    env:
+      QT_QPA_PLATFORM: offscreen
+      QML_DISABLE_DISK_CACHE: 1
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install NASM
+        run: choco install nasm --no-progress -y
+
+      - name: Install Qt 6.8.3
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          arch: win64_msvc2022_64
+          modules: 'qtshadertools'
+          cache: 'true'
+
+      - name: Configure (Release + Qt UI)
+        run: cmake --preset windows-x64-release -DCLIPFORGE_BUILD_QT_UI=ON
+
+      - name: Build
+        run: cmake --build --preset windows-x64-release
+
+      - name: QML lint
+        run: cmake --build --preset windows-x64-release --target all_qmllint
+
+      - name: Test (CTest)
+        run: ctest --preset windows-x64-release --output-on-failure
