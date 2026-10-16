@@ -14,6 +14,13 @@
 
 using namespace Qt::StringLiterals;
 
+#include <cstdio>
+
+static void twait(const char *what, bool v) {
+    std::fprintf(stderr, "CFTRACE wait %s -> %d\n", what, static_cast<int>(v));
+    std::fflush(stderr);
+}
+
 namespace {
 
 clipforge::audio::AudioBuffer makeToneBuffer() {
@@ -175,13 +182,6 @@ private slots:
         QVERIFY(model.statusAt(0) != u"pending"_s);
     }
 };
-
-#include <cstdio>
-
-static void twait(const char *what, bool v) {
-    std::fprintf(stderr, "CFTRACE wait %s -> %d\n", what, static_cast<int>(v));
-    std::fflush(stderr);
-}
 
 #include <QCoreApplication>
 #include <QThread>
