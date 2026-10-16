@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- N/A
+- Qt 6 Quick slice-1 desktop app: batch queue, per-file and overall progress, cancel, headless offscreen tests, and a `windeployqt` CI artifact.
 
 ### Changed
 - N/A

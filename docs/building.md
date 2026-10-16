@@ -48,6 +48,10 @@ ctest --preset windows-x64-release --output-on-failure
 .\build\release\clipforge-bench.exe --csv benchmark_results.csv
 ```
 
+### Qt 6 Quick (CI-only)
+
+The Qt slice needs Qt 6.8, installed only on CI (`install-qt-action@v4`, `win64_msvc2022_64` + `qtshadertools`). Add `-DCLIPFORGE_BUILD_QT_UI=ON` to the configure step; the `build-test-qt` job (release commits/tags, or dispatch with `run_qt=true`) builds `clipforge-ui`, runs `qmllint` and offscreen `CTest` (`clipforge.qt_bridge`, `clipforge.qt_smoke`), packages with `windeployqt` plus the official `vc_redist`, and uploads the ZIP artifact.
+
 ### CMake options
 
 | Option | Default | Meaning |
