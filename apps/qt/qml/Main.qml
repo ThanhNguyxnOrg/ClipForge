@@ -430,6 +430,7 @@ ApplicationWindow {
                 }
             }
             Button {
+                id: startButton
                 objectName: "startButton"
                 text: "Start"
                 font.pixelSize: 14
@@ -459,6 +460,7 @@ ApplicationWindow {
                 }
             }
             Button {
+                id: cancelButton
                 objectName: "cancelButton"
                 text: "Cancel"
                 font.pixelSize: 14
