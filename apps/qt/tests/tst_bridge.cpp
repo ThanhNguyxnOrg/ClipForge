@@ -16,9 +16,26 @@ using namespace Qt::StringLiterals;
 
 #include <cstdio>
 
+#include <atomic>
+#include <chrono>
+#include <thread>
+
 static void twait(const char *what, bool v) {
     std::fprintf(stderr, "CFTRACE wait %s -> %d\n", what, static_cast<int>(v));
     std::fflush(stderr);
+}
+
+static std::atomic<bool> g_alive{true};
+
+static void theartbeat() {
+    for (int i = 0; i < 70 && g_alive.load(std::memory_order_relaxed); ++i) {
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+        if (!g_alive.load(std::memory_order_relaxed)) {
+            break;
+        }
+        std::fprintf(stderr, "CFTRACE heartbeat %d\n", i);
+        std::fflush(stderr);
+    }
 }
 
 namespace {
@@ -192,8 +209,10 @@ int main(int argc, char *argv[]) {
                  static_cast<void *>(QCoreApplication::instance()),
                  static_cast<void *>(QThread::currentThread()));
     std::fflush(stderr);
+    std::thread(theartbeat).detach();
     TstBridge tc;
     const int rc = QTest::qExec(&tc, argc, argv);
+    g_alive.store(false, std::memory_order_relaxed);
     std::fprintf(stderr, "CFTRACE main exit rc=%d\n", rc);
     std::fflush(stderr);
     return rc;
