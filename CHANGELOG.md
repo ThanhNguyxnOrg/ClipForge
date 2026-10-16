@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-10-16 ✨
+
+First officially stable release: redesigned Qt app, fuller tests, bot-owned pipeline.
+
+### Added
+- 🎨 Full Qt visual restyle (dark DSP theme, styled controls, app window icon).
+- 📂 Folder picker dialogs for input/output directories.
+- 🖥️ GUI-subsystem link for `clipforge-ui.exe` (no console window) with a CI gate.
+- 🧪 Batch service suite, WAV adversarial cases, processing edges, Analyzer vectors.
+- 🔧 `tools/make_icon.py` (stdlib-only SVG→ICO generator) + `assets/clipforge.ico`.
+
 ## [0.1.1] - 2026-10-16 🖥️
 
 Qt app joins the release assets.
@@ -46,6 +57,7 @@ First public MVP release.
 - 🎨 Light-mode logo variant with drop shadow; README switches via `<picture>`.
 - 🤖 Release-gated Qt CI job (release commits, tags, manual dispatch).
 
-[Unreleased]: https://github.com/ThanhNguyxnOrg/ClipForge/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/ThanhNguyxnOrg/ClipForge/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ThanhNguyxnOrg/ClipForge/releases/tag/v0.2.0
 [0.1.1]: https://github.com/ThanhNguyxnOrg/ClipForge/releases/tag/v0.1.1
 [0.1.0]: https://github.com/ThanhNguyxnOrg/ClipForge/releases/tag/v0.1.0
