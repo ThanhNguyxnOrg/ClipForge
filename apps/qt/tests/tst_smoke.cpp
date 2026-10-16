@@ -2,6 +2,7 @@
 
 #include <QGuiApplication>
 #include <QQuickItem>
+#include <QQuickStyle>
 #include <QQuickWindow>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -129,6 +130,7 @@ private slots:
 
 int main(int argc, char *argv[]) {
     QGuiApplication app(argc, argv);
+    QQuickStyle::setStyle(QStringLiteral("Fusion"));
     TstSmoke tc;
     return QTest::qExec(&tc, argc, argv);
 }
