@@ -39,9 +39,6 @@ benchmark_results.csv
 .vscode/.ropeproject/
 *.code-workspace.history
 
-# Execution harness scratch (ledgers, briefs, review packages)
-.superpowers/
-
 # OS
 .DS_Store
 Thumbs.db
