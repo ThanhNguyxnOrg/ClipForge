@@ -10,7 +10,7 @@ ApplicationWindow {
     minimumWidth: 760
     minimumHeight: 520
     title: "ClipForge Batch"
-    color: Theme.navy
+    color: theme.navy
 
     property int totalDone: 0
     property int totalCount: 0
@@ -48,12 +48,12 @@ ApplicationWindow {
                     text: "ClipForge Batch"
                     font.pixelSize: 22
                     font.bold: true
-                    color: Theme.bone
+                    color: theme.bone
                 }
                 Label {
                     text: "Offline batch audio toolkit"
                     font.pixelSize: 13
-                    color: Theme.slate
+                    color: theme.slate
                 }
             }
         }
@@ -66,7 +66,7 @@ ApplicationWindow {
                 Label {
                     text: "Input directory"
                     font.pixelSize: 12
-                    color: Theme.slate
+                    color: theme.slate
                 }
                 TextField {
                     id: inputDirField
@@ -75,13 +75,13 @@ ApplicationWindow {
                     implicitHeight: 38
                     leftPadding: 12
                     placeholderText: "D:\\Recordings"
-                    color: Theme.bone
-                    placeholderTextColor: Theme.slate
-                    selectionColor: Theme.cyan
+                    color: theme.bone
+                    placeholderTextColor: theme.slate
+                    selectionColor: theme.cyan
                     background: Rectangle {
-                        radius: Theme.radiusControl
-                        color: Theme.panel
-                        border.color: inputDirField.activeFocus ? Theme.cyan : Theme.border
+                        radius: theme.radiusControl
+                        color: theme.panel
+                        border.color: inputDirField.activeFocus ? theme.cyan : theme.border
                         border.width: inputDirField.activeFocus ? 2 : 1
                     }
                 }
@@ -92,7 +92,7 @@ ApplicationWindow {
                 Label {
                     text: "Output directory"
                     font.pixelSize: 12
-                    color: Theme.slate
+                    color: theme.slate
                 }
                 TextField {
                     id: outputDirField
@@ -101,13 +101,13 @@ ApplicationWindow {
                     implicitHeight: 38
                     leftPadding: 12
                     placeholderText: "D:\\Processed"
-                    color: Theme.bone
-                    placeholderTextColor: Theme.slate
-                    selectionColor: Theme.cyan
+                    color: theme.bone
+                    placeholderTextColor: theme.slate
+                    selectionColor: theme.cyan
                     background: Rectangle {
-                        radius: Theme.radiusControl
-                        color: Theme.panel
-                        border.color: outputDirField.activeFocus ? Theme.cyan : Theme.border
+                        radius: theme.radiusControl
+                        color: theme.panel
+                        border.color: outputDirField.activeFocus ? theme.cyan : theme.border
                         border.width: outputDirField.activeFocus ? 2 : 1
                     }
                 }
@@ -117,7 +117,7 @@ ApplicationWindow {
                 Label {
                     text: "Operation"
                     font.pixelSize: 12
-                    color: Theme.slate
+                    color: theme.slate
                 }
                 ComboBox {
                     id: operationBox
@@ -125,36 +125,36 @@ ApplicationWindow {
                     model: ["normalize", "trim", "both"]
                     contentItem: Text {
                         text: operationBox.displayText
-                        color: Theme.bone
+                        color: theme.bone
                         font.pixelSize: 14
                         elide: Text.ElideRight
                         verticalAlignment: Text.AlignVCenter
                     }
                     background: Rectangle {
-                        radius: Theme.radiusControl
-                        color: Theme.panel
-                        border.color: Theme.border
+                        radius: theme.radiusControl
+                        color: theme.panel
+                        border.color: theme.border
                         border.width: 1
                     }
                     popup: Popup {
                         background: Rectangle {
-                            color: Theme.panel
-                            border.color: Theme.border
+                            color: theme.panel
+                            border.color: theme.border
                             border.width: 1
-                            radius: Theme.radiusControl
+                            radius: theme.radiusControl
                         }
                     }
                     delegate: ItemDelegate {
                         width: operationBox.width
                         contentItem: Text {
                             text: modelData
-                            color: Theme.bone
+                            color: theme.bone
                             font.pixelSize: 14
                             elide: Text.ElideRight
                             verticalAlignment: Text.AlignVCenter
                         }
                         background: Rectangle {
-                            color: highlighted ? Theme.track : "transparent"
+                            color: highlighted ? theme.track : "transparent"
                         }
                     }
                 }
@@ -164,7 +164,7 @@ ApplicationWindow {
                 Label {
                     text: "Options"
                     font.pixelSize: 12
-                    color: Theme.slate
+                    color: theme.slate
                 }
                 RowLayout {
                     spacing: 12
@@ -173,7 +173,7 @@ ApplicationWindow {
                         text: "Recursive"
                         contentItem: Text {
                             text: recursiveBox.text
-                            color: Theme.bone
+                            color: theme.bone
                             font.pixelSize: 14
                             leftPadding: recursiveBox.indicator.width + 8
                             verticalAlignment: Text.AlignVCenter
@@ -184,15 +184,15 @@ ApplicationWindow {
                             x: recursiveBox.leftPadding
                             anchors.verticalCenter: parent.verticalCenter
                             radius: 6
-                            color: recursiveBox.checked ? Theme.cyan : "transparent"
-                            border.color: recursiveBox.checked ? Theme.cyan : Theme.slate
+                            color: recursiveBox.checked ? theme.cyan : "transparent"
+                            border.color: recursiveBox.checked ? theme.cyan : theme.slate
                             border.width: 2
                             Rectangle {
                                 anchors.centerIn: parent
                                 width: 10
                                 height: 10
                                 radius: 3
-                                color: Theme.navy
+                                color: theme.navy
                                 visible: recursiveBox.checked
                             }
                         }
@@ -203,7 +203,7 @@ ApplicationWindow {
                         text: "Dry run"
                         contentItem: Text {
                             text: dryRunBox.text
-                            color: Theme.bone
+                            color: theme.bone
                             font.pixelSize: 14
                             leftPadding: dryRunBox.indicator.width + 8
                             verticalAlignment: Text.AlignVCenter
@@ -214,15 +214,15 @@ ApplicationWindow {
                             x: dryRunBox.leftPadding
                             anchors.verticalCenter: parent.verticalCenter
                             radius: 6
-                            color: dryRunBox.checked ? Theme.cyan : "transparent"
-                            border.color: dryRunBox.checked ? Theme.cyan : Theme.slate
+                            color: dryRunBox.checked ? theme.cyan : "transparent"
+                            border.color: dryRunBox.checked ? theme.cyan : theme.slate
                             border.width: 2
                             Rectangle {
                                 anchors.centerIn: parent
                                 width: 10
                                 height: 10
                                 radius: 3
-                                color: Theme.navy
+                                color: theme.navy
                                 visible: dryRunBox.checked
                             }
                         }
@@ -238,9 +238,9 @@ ApplicationWindow {
 
             Rectangle {
                 SplitView.preferredWidth: 600
-                color: Theme.panel
-                radius: Theme.radiusCard
-                border.color: Theme.border
+                color: theme.panel
+                radius: theme.radiusCard
+                border.color: theme.border
                 border.width: 1
                 clip: true
 
@@ -253,13 +253,13 @@ ApplicationWindow {
                             text: "Queue"
                             font.pixelSize: 15
                             font.bold: true
-                            color: Theme.bone
+                            color: theme.bone
                         }
                         Label {
                             text: queueView.count + " files"
                             font.pixelSize: 12
-                            font.family: Theme.monoFont
-                            color: Theme.slate
+                            font.family: theme.monoFont
+                            color: theme.slate
                         }
                     }
                     ListView {
@@ -283,9 +283,9 @@ ApplicationWindow {
                                     Layout.fillWidth: true
                                     text: fileName
                                     elide: Text.ElideMiddle
-                                    color: Theme.bone
+                                    color: theme.bone
                                     font.pixelSize: 13
-                                    font.family: Theme.monoFont
+                                    font.family: theme.monoFont
                                 }
                                 RowLayout {
                                     spacing: 8
@@ -297,21 +297,21 @@ ApplicationWindow {
                                         background: Rectangle {
                                             implicitHeight: 8
                                             radius: 4
-                                            color: Theme.track
+                                            color: theme.track
                                         }
                                         contentItem: Item {
                                             Rectangle {
                                                 width: parent.width * progress
                                                 height: parent.height
                                                 radius: 4
-                                                color: Theme.cyan
+                                                color: theme.cyan
                                             }
                                         }
                                     }
                                     Label {
                                         text: status
                                         font.pixelSize: 13
-                                        color: Theme.statusColor(status)
+                                        color: theme.statusColor(status)
                                     }
                                 }
                                 Label {
@@ -320,12 +320,12 @@ ApplicationWindow {
                                     visible: errorMessage !== ""
                                     wrapMode: Text.WrapAnywhere
                                     font.pixelSize: 12
-                                    color: Theme.danger
+                                    color: theme.danger
                                 }
                             }
                             background: Rectangle {
                                 radius: 8
-                                color: hovered ? Theme.track : "transparent"
+                                color: hovered ? theme.track : "transparent"
                             }
                         }
                         ScrollBar.vertical: ScrollBar {
@@ -333,7 +333,7 @@ ApplicationWindow {
                             contentItem: Rectangle {
                                 implicitWidth: 8
                                 radius: 4
-                                color: Theme.border
+                                color: theme.border
                             }
                             background: Rectangle {
                                 implicitWidth: 8
@@ -348,7 +348,7 @@ ApplicationWindow {
                             horizontalAlignment: Text.AlignHCenter
                             width: parent.width - 48
                             font.pixelSize: 14
-                            color: Theme.slate
+                            color: theme.slate
                         }
                     }
                 }
@@ -356,9 +356,9 @@ ApplicationWindow {
 
             Rectangle {
                 SplitView.preferredWidth: 320
-                color: Theme.panel
-                radius: Theme.radiusCard
-                border.color: Theme.border
+                color: theme.panel
+                radius: theme.radiusCard
+                border.color: theme.border
                 border.width: 1
                 ColumnLayout {
                     anchors.fill: parent
@@ -368,31 +368,31 @@ ApplicationWindow {
                         text: "Inspector"
                         font.pixelSize: 15
                         font.bold: true
-                        color: Theme.bone
+                        color: theme.bone
                     }
                     Label {
                         text: "File"
                         font.pixelSize: 12
-                        color: Theme.slate
+                        color: theme.slate
                     }
                     Label {
                         Layout.fillWidth: true
                         text: queueView.currentItem ? queueView.currentItem.fileName : "No selection"
                         wrapMode: Text.WrapAnywhere
                         font.pixelSize: 13
-                        color: Theme.bone
-                        font.family: Theme.monoFont
+                        color: theme.bone
+                        font.family: theme.monoFont
                     }
                     Label {
                         text: "Status"
                         font.pixelSize: 12
-                        color: Theme.slate
+                        color: theme.slate
                     }
                     Label {
                         text: queueView.currentItem ? queueView.currentItem.status : "—"
                         font.pixelSize: 14
                         font.bold: true
-                        color: queueView.currentItem ? Theme.statusColor(queueView.currentItem.status) : Theme.slate
+                        color: queueView.currentItem ? theme.statusColor(queueView.currentItem.status) : theme.slate
                     }
                 }
             }
@@ -403,8 +403,8 @@ ApplicationWindow {
             Label {
                 text: totalDone + " / " + Math.max(totalCount, 0) + " files"
                 font.pixelSize: 13
-                font.family: Theme.monoFont
-                color: Theme.slate
+                font.family: theme.monoFont
+                color: theme.slate
             }
             ProgressBar {
                 Layout.fillWidth: true
@@ -414,14 +414,14 @@ ApplicationWindow {
                 background: Rectangle {
                     implicitHeight: 10
                     radius: 5
-                    color: Theme.track
+                    color: theme.track
                 }
                 contentItem: Item {
                     Rectangle {
                         width: parent.width * (root.totalCount > 0 ? root.totalDone / root.totalCount : 0)
                         height: parent.height
                         radius: 5
-                        color: Theme.cyan
+                        color: theme.cyan
                     }
                 }
             }
@@ -433,15 +433,15 @@ ApplicationWindow {
                 contentItem: Text {
                     text: startButton.text
                     font: startButton.font
-                    color: Theme.navy
+                    color: theme.navy
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
                 background: Rectangle {
                     implicitWidth: 120
                     implicitHeight: 38
-                    radius: Theme.radiusControl
-                    color: startButton.hovered ? Theme.orangeEnd : Theme.orange
+                    radius: theme.radiusControl
+                    color: startButton.hovered ? theme.orangeEnd : theme.orange
                 }
                 onClicked: {
                     statusLine.text = "Running…";
@@ -461,16 +461,16 @@ ApplicationWindow {
                 contentItem: Text {
                     text: cancelButton.text
                     font: cancelButton.font
-                    color: Theme.bone
+                    color: theme.bone
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
                 background: Rectangle {
                     implicitWidth: 120
                     implicitHeight: 38
-                    radius: Theme.radiusControl
-                    color: cancelButton.hovered ? Theme.track : "transparent"
-                    border.color: Theme.slate
+                    radius: theme.radiusControl
+                    color: cancelButton.hovered ? theme.track : "transparent"
+                    border.color: theme.slate
                     border.width: 1
                 }
                 onClicked: bridge.cancel()
@@ -483,7 +483,7 @@ ApplicationWindow {
             Layout.fillWidth: true
             text: "Idle."
             font.pixelSize: 13
-            color: Theme.slate
+            color: theme.slate
         }
     }
 }
