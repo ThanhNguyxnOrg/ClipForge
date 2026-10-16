@@ -102,7 +102,7 @@ if(CLIPFORGE_BUILD_QT_UI)
     target_link_libraries(clipforge_qt PUBLIC Qt6::Core Qt6::Concurrent clipforge_core)
 
     qt_add_executable(clipforge-ui apps/qt/main.cpp)
-    target_link_libraries(clipforge-ui PRIVATE Qt6::Gui Qt6::Quick clipforge_qt clipforge_core)
+    target_link_libraries(clipforge-ui PRIVATE Qt6::Gui Qt6::Quick clipforge_qt clipforge_qtplugin clipforge_core)
 
     # QML lives in the static lib so both the app and the smoke test link it.
     qt_add_qml_module(clipforge_qt
@@ -123,7 +123,7 @@ if(CLIPFORGE_BUILD_QT_UI)
     add_test(NAME clipforge.qt_bridge COMMAND tst_bridge)
 
     add_executable(tst_smoke apps/qt/tests/tst_smoke.cpp)
-    target_link_libraries(tst_smoke PRIVATE Qt6::Test Qt6::Gui Qt6::Qml Qt6::Quick clipforge_qt clipforge_core)
+    target_link_libraries(tst_smoke PRIVATE Qt6::Test Qt6::Gui Qt6::Qml Qt6::Quick clipforge_qt clipforge_qtplugin clipforge_core)
     add_test(NAME clipforge.qt_smoke COMMAND tst_smoke)
 
     message(STATUS "ClipForge: Qt 6 Quick UI enabled.")
