@@ -187,6 +187,17 @@ jobs:
       - name: Build
         run: cmake --build --preset windows-x64-release
 
+      - name: Assert GUI subsystem (no console window)
+        shell: pwsh
+        run: |
+          $sub = & dumpbin /headers build/release/clipforge-ui.exe | Select-String "subsystem"
+          $sub | ForEach-Object { Write-Host $_ }
+          $gui = @($sub | Select-String -Pattern "Windows GUI")
+          if ($gui.Count -eq 0) {
+            Write-Error "clipforge-ui.exe must link as Windows GUI subsystem so end users see no console window."
+            exit 1
+          }
+
       - name: QML lint
         run: cmake --build --preset windows-x64-release --target all_qmllint
 

@@ -105,6 +105,14 @@ if(CLIPFORGE_BUILD_QT_UI)
 
     qt_add_executable(clipforge-ui apps/qt/main.cpp)
     target_link_libraries(clipforge-ui PRIVATE Qt6::Gui Qt6::Quick clipforge_qt clipforge_qtplugin clipforge_core)
+    # GUI subsystem: no console window for end users. Devs still get
+    # qDebug output in a debugger. The CI gate asserts this (dumpbin).
+    set_target_properties(clipforge-ui PROPERTIES WIN32_EXECUTABLE TRUE)
+    if(WIN32)
+        set(CLIPFORGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/clipforge.ico")
+        configure_file(apps/qt/appicon.rc.in apps/qt/appicon.rc @ONLY)
+        target_sources(clipforge-ui PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/apps/qt/appicon.rc)
+    endif()
 
     # QML lives in the static lib so both the app and the smoke test link it.
     qt_add_qml_module(clipforge_qt

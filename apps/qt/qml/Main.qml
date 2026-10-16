@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Dialogs
 import QtQuick.Layouts
 
 ApplicationWindow {
@@ -18,6 +19,18 @@ ApplicationWindow {
 
     property int totalDone: 0
     property int totalCount: 0
+
+    FolderDialog {
+        id: inputDialog
+        title: "Choose input directory"
+        onAccepted: inputDirField.text = selectedFolder.toString().replace(/^file:\/\/\//, "")
+    }
+
+    FolderDialog {
+        id: outputDialog
+        title: "Choose output directory"
+        onAccepted: outputDirField.text = selectedFolder.toString().replace(/^file:\/\/\//, "")
+    }
 
     Connections {
         target: bridge
@@ -72,21 +85,44 @@ ApplicationWindow {
                     font.pixelSize: 12
                     color: theme.slate
                 }
-                TextField {
-                    id: inputDirField
-                    objectName: "inputDirField"
-                    Layout.fillWidth: true
-                    implicitHeight: 38
-                    leftPadding: 12
-                    placeholderText: "D:\\Recordings"
-                    color: theme.bone
-                    placeholderTextColor: theme.slate
-                    selectionColor: theme.cyan
-                    background: Rectangle {
-                        radius: theme.radiusControl
-                        color: theme.panel
-                        border.color: inputDirField.activeFocus ? theme.cyan : theme.border
-                        border.width: inputDirField.activeFocus ? 2 : 1
+                RowLayout {
+                    spacing: 8
+                    TextField {
+                        id: inputDirField
+                        objectName: "inputDirField"
+                        Layout.fillWidth: true
+                        implicitHeight: 38
+                        leftPadding: 12
+                        placeholderText: "D:\\Recordings"
+                        color: theme.bone
+                        placeholderTextColor: theme.slate
+                        selectionColor: theme.cyan
+                        background: Rectangle {
+                            radius: theme.radiusControl
+                            color: theme.panel
+                            border.color: inputDirField.activeFocus ? theme.cyan : theme.border
+                            border.width: inputDirField.activeFocus ? 2 : 1
+                        }
+                    }
+                    Button {
+                        text: "Choose…"
+                        font.pixelSize: 13
+                        implicitWidth: 92
+                        implicitHeight: 38
+                        contentItem: Text {
+                            text: parent.text
+                            font: parent.font
+                            color: theme.bone
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            radius: theme.radiusControl
+                            color: parent.hovered ? theme.track : "transparent"
+                            border.color: theme.slate
+                            border.width: 1
+                        }
+                        onClicked: inputDialog.open()
                     }
                 }
             }
@@ -98,21 +134,44 @@ ApplicationWindow {
                     font.pixelSize: 12
                     color: theme.slate
                 }
-                TextField {
-                    id: outputDirField
-                    objectName: "outputDirField"
-                    Layout.fillWidth: true
-                    implicitHeight: 38
-                    leftPadding: 12
-                    placeholderText: "D:\\Processed"
-                    color: theme.bone
-                    placeholderTextColor: theme.slate
-                    selectionColor: theme.cyan
-                    background: Rectangle {
-                        radius: theme.radiusControl
-                        color: theme.panel
-                        border.color: outputDirField.activeFocus ? theme.cyan : theme.border
-                        border.width: outputDirField.activeFocus ? 2 : 1
+                RowLayout {
+                    spacing: 8
+                    TextField {
+                        id: outputDirField
+                        objectName: "outputDirField"
+                        Layout.fillWidth: true
+                        implicitHeight: 38
+                        leftPadding: 12
+                        placeholderText: "D:\\Processed"
+                        color: theme.bone
+                        placeholderTextColor: theme.slate
+                        selectionColor: theme.cyan
+                        background: Rectangle {
+                            radius: theme.radiusControl
+                            color: theme.panel
+                            border.color: outputDirField.activeFocus ? theme.cyan : theme.border
+                            border.width: outputDirField.activeFocus ? 2 : 1
+                        }
+                    }
+                    Button {
+                        text: "Choose…"
+                        font.pixelSize: 13
+                        implicitWidth: 92
+                        implicitHeight: 38
+                        contentItem: Text {
+                            text: parent.text
+                            font: parent.font
+                            color: theme.bone
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            radius: theme.radiusControl
+                            color: parent.hovered ? theme.track : "transparent"
+                            border.color: theme.slate
+                            border.width: 1
+                        }
+                        onClicked: outputDialog.open()
                     }
                 }
             }
@@ -125,6 +184,7 @@ ApplicationWindow {
                 }
                 ComboBox {
                     id: operationBox
+                    implicitWidth: 150
                     implicitHeight: 38
                     model: ["normalize", "trim", "both"]
                     contentItem: Text {
