@@ -9,6 +9,10 @@ QtObject {
     readonly property color bone: "#F3F5F8"
     readonly property color slate: "#8A93A6"
     readonly property color danger: "#EF4444"
+    readonly property color track: "#1E2433"
+    readonly property color border: "#2A3145"
+    readonly property int radiusCard: 12
+    readonly property int radiusControl: 8
     readonly property string monoFont: "Cascadia Mono"
 
     function statusColor(status: string): color {

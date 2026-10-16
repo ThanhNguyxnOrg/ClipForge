@@ -1,4 +1,5 @@
 #include <QGuiApplication>
+#include <QIcon>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QtQml/QQmlExtensionPlugin>
@@ -12,6 +13,7 @@ Q_IMPORT_QML_PLUGIN(ClipForgePlugin)
 
 int main(int argc, char *argv[]) {
     QGuiApplication app(argc, argv);
+    app.setWindowIcon(QIcon(u":/qt/qml/ClipForge/assets/clipforge-logo.svg"_s));
     QQmlApplicationEngine engine;
 
     BatchQueueModel model;
