@@ -93,7 +93,7 @@ if(CLIPFORGE_BUILD_TESTS)
 endif()
 
 if(CLIPFORGE_BUILD_QT_UI)
-    find_package(Qt6 6.8 COMPONENTS Quick QuickTest Test Gui Concurrent Svg REQUIRED)
+    find_package(Qt6 6.8 COMPONENTS Quick QuickTest Test Gui Concurrent Svg QuickControls2 REQUIRED)
     qt_standard_project_setup(REQUIRES 6.5)
 
     add_library(clipforge_qt STATIC
@@ -101,7 +101,7 @@ if(CLIPFORGE_BUILD_QT_UI)
         apps/qt/EngineBridge.cpp
     )
     target_include_directories(clipforge_qt PUBLIC apps/qt)
-    target_link_libraries(clipforge_qt PUBLIC Qt6::Core Qt6::Concurrent Qt6::Svg clipforge_core)
+    target_link_libraries(clipforge_qt PUBLIC Qt6::Core Qt6::Concurrent Qt6::Svg Qt6::QuickControls2 clipforge_core)
 
     qt_add_executable(clipforge-ui apps/qt/main.cpp)
     target_link_libraries(clipforge-ui PRIVATE Qt6::Gui Qt6::Quick clipforge_qt clipforge_qtplugin clipforge_core)
