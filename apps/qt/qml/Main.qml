@@ -12,14 +12,11 @@ ApplicationWindow {
     title: "ClipForge Batch"
     color: Theme.navy
 
-    property var bridge
-    property var batchModel
-
     property int totalDone: 0
     property int totalCount: 0
 
     Connections {
-        target: root.bridge
+        target: bridge
         function onTotalProgress(completed, total) {
             root.totalDone = completed;
             root.totalCount = total;
@@ -48,12 +45,14 @@ ApplicationWindow {
             spacing: 8
             TextField {
                 id: inputDirField
+                objectName: "inputDirField"
                 Layout.fillWidth: true
                 placeholderText: "Input directory"
                 color: Theme.bone
             }
             TextField {
                 id: outputDirField
+                objectName: "outputDirField"
                 Layout.fillWidth: true
                 placeholderText: "Output directory"
                 color: Theme.bone
@@ -80,10 +79,16 @@ ApplicationWindow {
 
             ListView {
                 id: queueView
+                objectName: "queueView"
                 SplitView.preferredWidth: 560
                 clip: true
-                model: root.batchModel
+                reuseItems: true
+                model: batchModel
                 delegate: ItemDelegate {
+                    required property string fileName
+                    required property string status
+                    required property double progress
+                    required property string errorMessage
                     width: queueView.width
                     contentItem: ColumnLayout {
                         spacing: 2
@@ -114,6 +119,16 @@ ApplicationWindow {
                             color: Theme.danger
                         }
                     }
+                }
+
+                Label {
+                    anchors.centerIn: parent
+                    visible: queueView.count === 0
+                    text: "No WAV files yet — pick an input folder and press Start."
+                    wrapMode: Text.WordWrap
+                    horizontalAlignment: Text.AlignHCenter
+                    width: parent.width - 32
+                    color: Theme.slate
                 }
             }
 
@@ -148,10 +163,11 @@ ApplicationWindow {
                 value: root.totalDone
             }
             Button {
+                objectName: "startButton"
                 text: "Start"
                 onClicked: {
                     statusLine.text = "Running…";
-                    root.bridge.startBatch(
+                    bridge.startBatch(
                         inputDirField.text,
                         outputDirField.text,
                         operationBox.currentText,
@@ -161,13 +177,15 @@ ApplicationWindow {
                 }
             }
             Button {
+                objectName: "cancelButton"
                 text: "Cancel"
-                onClicked: root.bridge.cancel()
+                onClicked: bridge.cancel()
             }
         }
 
         Label {
             id: statusLine
+            objectName: "statusLine"
             Layout.fillWidth: true
             text: "Idle."
             color: Theme.slate

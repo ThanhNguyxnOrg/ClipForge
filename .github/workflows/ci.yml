@@ -187,15 +187,8 @@ jobs:
       - name: Build
         run: cmake --build --preset windows-x64-release
 
-      - name: QML lint (when QML targets exist)
-        shell: pwsh
-        run: |
-          $targets = & cmake --build --preset windows-x64-release --target help
-          if ($targets -match 'all_qmllint') {
-            cmake --build --preset windows-x64-release --target all_qmllint
-          } else {
-            Write-Host "No QML targets yet — lint enforced once Task 3 lands."
-          }
+      - name: QML lint
+        run: cmake --build --preset windows-x64-release --target all_qmllint
 
       - name: Test (CTest)
         run: ctest --preset windows-x64-release --output-on-failure

@@ -54,13 +54,7 @@ int EngineBridge::lookupRow(const QString &path) const {
         return row;
     }
     // Fallback for filesystem case-insensitivity and separator drift.
-    const QString lowered = norm.toLower();
-    for (auto it = rowByPath_.cbegin(); it != rowByPath_.cend(); ++it) {
-        if (it.key().toLower() == lowered) {
-            return it.value();
-        }
-    }
-    return -1;
+    return lowerRowByPath_.value(norm.toLower(), -1);
 }
 
 QStringList EngineBridge::scanWavFiles(const QString &inputDir, bool recursive) const {
@@ -119,11 +113,13 @@ void EngineBridge::startBatch(
 
     const QStringList files = scanWavFiles(inputDir, recursive);
     rowByPath_.clear();
+    lowerRowByPath_.clear();
     activeRow_ = -1;
     if (model_ != nullptr) {
         model_->setFiles(files);
         for (int r = 0; r < files.size(); ++r) {
             rowByPath_.insert(files.at(r), r);
+            lowerRowByPath_.insert(files.at(r).toLower(), r);
         }
     }
 
@@ -170,10 +166,6 @@ void EngineBridge::onWorkerProgress(std::size_t completed, std::size_t total, co
     const int row = lookupRow(currentFile);
     if (row < 0) {
         return;
-    }
-    if (activeRow_ >= 0 && activeRow_ != row && model_->statusAt(activeRow_) == u"active"_s) {
-        model_->setRowStatus(activeRow_, u"done"_s);
-        model_->updateProgress(activeRow_, 1.0);
     }
     if (model_->statusAt(row) == u"pending"_s) {
         model_->setRowStatus(row, u"active"_s);

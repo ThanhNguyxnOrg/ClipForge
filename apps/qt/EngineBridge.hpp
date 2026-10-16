@@ -53,6 +53,7 @@ private:
     QFutureWatcher<clipforge::Result<clipforge::services::BatchSummary>> watcher_;
     std::atomic<bool> cancelFlag_{false};
     QHash<QString, int> rowByPath_;
+    QHash<QString, int> lowerRowByPath_;
     int activeRow_ = -1;
     bool running_ = false;
 };

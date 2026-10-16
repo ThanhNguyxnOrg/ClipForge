@@ -1,5 +1,7 @@
 #include <QtTest>
 
+#include <QCoreApplication>
+#include <QDir>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 
@@ -103,7 +105,7 @@ private slots:
         bridge.startBatch(dir.path(), dir.path() + u"/out"_s, u"normalize"_s, -1.0, -45.0, false, true);
         QVERIFY(waitFor(finished, 30000));
         QCOMPARE(model.rowCount(), 1);
-        QCOMPARE(model.fileAt(0), wav);
+        QCOMPARE(QDir::cleanPath(model.fileAt(0)), QDir::cleanPath(wav));
     }
 
     void failed_file_continues() {
