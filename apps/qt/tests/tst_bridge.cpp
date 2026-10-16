@@ -140,5 +140,11 @@ private slots:
     }
 };
 
-QTEST_MAIN(TstBridge)
+#include <cstdio>
+
+int main(int argc, char *argv[]) {
+    std::setvbuf(stdout, nullptr, _IONBF, 0);
+    TstBridge tc;
+    return QTest::qExec(&tc, argc, argv);
+}
 #include "tst_bridge.moc"
