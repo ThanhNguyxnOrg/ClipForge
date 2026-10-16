@@ -2,6 +2,7 @@
 
 #include <QtConcurrent>
 
+#include <QDebug>
 #include <QDir>
 #include <QDirIterator>
 #include <QFileInfo>
@@ -89,6 +90,7 @@ void EngineBridge::startBatch(
     }
 
     const QStringList files = scanWavFiles(inputDir, recursive);
+    qDebug() << "CFTRACE startBatch files:" << files.size() << "op:" << operation;
     rowByPath_.clear();
     activeRow_ = -1;
     if (model_ != nullptr) {
@@ -102,6 +104,7 @@ void EngineBridge::startBatch(
     running_ = true;
 
     auto future = QtConcurrent::run([=, this]() -> clipforge::Result<clipforge::services::BatchSummary> {
+        qDebug() << "CFTRACE worker entered";
         clipforge::services::BatchRequest req{};
         req.input_dir = toFsPath(inputDir);
         req.output_dir = toFsPath(outputDir);
@@ -122,6 +125,12 @@ void EngineBridge::startBatch(
         return result;
     });
     watcher_.setFuture(future);
+    if (future.isFinished()) {
+        // setFuture on an already-finished future may not re-emit finished
+        // on all Qt versions — deliver it ourselves (guarded by running_).
+        qDebug() << "CFTRACE future already finished at setFuture";
+        QMetaObject::invokeMethod(this, &EngineBridge::onWorkerFinished, Qt::QueuedConnection);
+    }
 }
 
 void EngineBridge::onWorkerProgress(std::size_t completed, std::size_t total, const QString &currentFile) {
@@ -148,7 +157,12 @@ void EngineBridge::onWorkerProgress(std::size_t completed, std::size_t total, co
 }
 
 void EngineBridge::onWorkerFinished() {
+    if (!running_) {
+        qDebug() << "CFTRACE onWorkerFinished ignored (not running)";
+        return;
+    }
     running_ = false;
+    qDebug() << "CFTRACE onWorkerFinished entered";
     const bool wasCancelled = cancelFlag_.load(std::memory_order_relaxed);
     const auto result = watcher_.result();
 
@@ -192,8 +206,10 @@ void EngineBridge::onWorkerFinished() {
     }
 
     if (wasCancelled) {
+        qDebug() << "CFTRACE emitting batchFinished(false)";
         emit batchFinished(false, u"Cancelled by user"_s);
     } else {
+        qDebug() << "CFTRACE emitting batchFinished(true)";
         emit batchFinished(true, QStringLiteral("%1 succeeded, %2 failed").arg(okCount).arg(failCount));
     }
 }
