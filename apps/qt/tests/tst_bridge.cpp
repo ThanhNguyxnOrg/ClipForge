@@ -222,6 +222,7 @@ int main(int argc, char *argv[]) {
                  static_cast<void *>(QThread::currentThread()));
     std::fflush(stderr);
     std::thread(theartbeat).detach();
+    QCoreApplication app(argc, argv);
     TstBridge tc;
     const int rc = QTest::qExec(&tc, argc, argv);
     g_alive.store(false, std::memory_order_relaxed);

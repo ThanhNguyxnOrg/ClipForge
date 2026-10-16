@@ -79,6 +79,18 @@ void EngineBridge::cancel() {
     cancelFlag_.store(true, std::memory_order_relaxed);
 }
 
+void EngineBridge::cancelAllPending() {
+    if (model_ == nullptr) {
+        return;
+    }
+    for (int r = 0; r < model_->rowCount(); ++r) {
+        const QString st = model_->statusAt(r);
+        if (st == u"pending"_s || st == u"active"_s) {
+            model_->setRowStatus(r, u"cancelled"_s);
+        }
+    }
+}
+
 void EngineBridge::startBatch(
     const QString &inputDir,
     const QString &outputDir,
@@ -201,10 +213,17 @@ void EngineBridge::onWorkerFinished() {
     }
 
     if (!result.has_value()) {
-        if (model_ != nullptr && activeRow_ >= 0) {
-            model_->setRowError(activeRow_, QString::fromStdString(result.error().message));
+        const QString msg = QString::fromStdString(result.error().message);
+        if (result.error().code == clipforge::ErrorCode::Cancelled) {
+            cancelAllPending();
+            emit batchFinished(false, u"Cancelled by user"_s);
+        } else {
+            if (model_ != nullptr && activeRow_ >= 0) {
+                model_->setRowError(activeRow_, msg);
+            }
+            emit batchError(msg);
+            emit batchFinished(false, msg);
         }
-        emit batchError(QString::fromStdString(result.error().message));
         return;
     }
 

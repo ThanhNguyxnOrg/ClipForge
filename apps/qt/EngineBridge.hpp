@@ -43,6 +43,7 @@ private slots:
     void onWorkerFinished();
 
 private:
+    void cancelAllPending();
     [[nodiscard]] static std::filesystem::path toFsPath(const QString &s);
     [[nodiscard]] static QString fromFsPath(const std::filesystem::path &p);
     [[nodiscard]] static QString normalize(const QString &p);
