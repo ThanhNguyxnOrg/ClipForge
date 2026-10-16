@@ -42,12 +42,20 @@ private slots:
         bridge.setQueueModel(&model);
         QQmlApplicationEngine engine;
         QObject::connect(
-            &engine, &QQmlApplicationEngine::objectCreationFailed,
-            [](const QUrl &url, const QQmlError &error) {
-                std::fprintf(stderr, "CFTRACE qml failed %s: %s\n",
-                             url.toString().toUtf8().constData(),
-                             error.toString().toUtf8().constData());
+            &engine, &QQmlApplicationEngine::objectCreationFailed, &engine,
+            [](const QUrl &url) {
+                std::fprintf(stderr, "CFTRACE qml object failed %s\n",
+                             url.toString().toUtf8().constData());
                 std::fflush(stderr);
+            });
+        QObject::connect(
+            &engine, &QQmlEngine::warnings, &engine,
+            [](const QList<QQmlError> &warnings) {
+                for (const QQmlError &w : warnings) {
+                    std::fprintf(stderr, "CFTRACE qml warning %s\n",
+                                 w.toString().toUtf8().constData());
+                    std::fflush(stderr);
+                }
             });
         engine.rootContext()->setContextProperty(u"batchModel"_s, &model);
         engine.rootContext()->setContextProperty(u"bridge"_s, &bridge);
