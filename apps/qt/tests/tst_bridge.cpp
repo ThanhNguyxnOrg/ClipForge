@@ -11,6 +11,8 @@
 #include "clipforge/audio/audio_buffer.hpp"
 #include "clipforge/audio/wav_writer.hpp"
 
+using namespace Qt::StringLiterals;
+
 namespace {
 
 clipforge::audio::AudioBuffer makeToneBuffer() {
