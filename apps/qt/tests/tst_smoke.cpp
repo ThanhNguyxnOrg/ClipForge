@@ -19,6 +19,8 @@ class TstSmoke : public QObject {
 
 private slots:
     void model_handles_500_rows() {
+        std::fprintf(stderr, "CFTRACE smoke model entry\n");
+        std::fflush(stderr);
         BatchQueueModel model;
         QStringList files;
         for (int i = 0; i < 500; ++i) {
@@ -37,6 +39,8 @@ private slots:
     }
 
     void engine_loads_window() {
+        std::fprintf(stderr, "CFTRACE smoke engine entry\n");
+        std::fflush(stderr);
         BatchQueueModel model;
         EngineBridge bridge;
         bridge.setQueueModel(&model);
@@ -68,7 +72,12 @@ private slots:
 };
 
 int main(int argc, char *argv[]) {
+    std::fprintf(stderr, "CFTRACE smoke main entry\n");
+    std::fflush(stderr);
     QGuiApplication app(argc, argv);
+    std::fprintf(stderr, "CFTRACE smoke app ok platform=%s\n",
+                 QGuiApplication::platformName().toUtf8().constData());
+    std::fflush(stderr);
     TstSmoke tc;
     return QTest::qExec(&tc, argc, argv);
 }
