@@ -104,7 +104,8 @@ if(CLIPFORGE_BUILD_QT_UI)
     qt_add_executable(clipforge-ui apps/qt/main.cpp)
     target_link_libraries(clipforge-ui PRIVATE Qt6::Gui Qt6::Quick clipforge_qt clipforge_core)
 
-    qt_add_qml_module(clipforge-ui
+    # QML lives in the static lib so both the app and the smoke test link it.
+    qt_add_qml_module(clipforge_qt
         URI ClipForge
         VERSION 1.0
         QML_FILES
