@@ -1,6 +1,9 @@
 <div align="center">
 
-<img src="assets/clipforge-logo.svg" width="128" alt="ClipForge logo">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/clipforge-logo.svg">
+  <img src="assets/clipforge-logo-light.svg" width="128" alt="ClipForge logo">
+</picture>
 
 # 🎬 ClipForge
 
