@@ -30,7 +30,9 @@ QString writeGoodWav(const QTemporaryDir &dir, const QString &name) {
     const QString path = dir.path() + u"/"_s + name;
     const auto status = clipforge::audio::WavWriter::write_file(
         std::filesystem::path(path.toStdWString()), makeToneBuffer());
-    QVERIFY(status.has_value());
+    if (!status.has_value()) {
+        return {};
+    }
     return path;
 }
 
@@ -53,6 +55,7 @@ private slots:
         txt.write("not audio");
         txt.close();
         const QString wav = writeGoodWav(dir, u"a.wav"_s);
+        QVERIFY(!wav.isEmpty());
 
         BatchQueueModel model;
         EngineBridge bridge;
@@ -67,12 +70,12 @@ private slots:
     void failed_file_continues() {
         QTemporaryDir dir;
         QVERIFY(dir.isValid());
-        writeGoodWav(dir, u"good1.wav"_s);
+        QVERIFY(!writeGoodWav(dir, u"good1.wav"_s).isEmpty());
         QFile bad(dir.path() + u"/bad.wav"_s);
         QVERIFY(bad.open(QIODevice::WriteOnly));
         bad.write("RIFFxxxxNOTAWAVEFILE________________");
         bad.close();
-        writeGoodWav(dir, u"good2.wav"_s);
+        QVERIFY(!writeGoodWav(dir, u"good2.wav"_s).isEmpty());
 
         BatchQueueModel model;
         EngineBridge bridge;
@@ -101,7 +104,7 @@ private slots:
         QTemporaryDir dir;
         QVERIFY(dir.isValid());
         for (int i = 0; i < 200; ++i) {
-            writeGoodWav(dir, QStringLiteral("f%1.wav").arg(i, 3, 10, QChar(u'0')));
+            QVERIFY(!writeGoodWav(dir, QStringLiteral("f%1.wav").arg(i, 3, 10, QChar(u'0'))).isEmpty());
         }
 
         BatchQueueModel model;
