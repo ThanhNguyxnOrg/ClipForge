@@ -44,6 +44,7 @@ private slots:
 
 private:
     void cancelAllPending();
+    [[nodiscard]] int lookupRow(const QString &path) const;
     [[nodiscard]] static std::filesystem::path toFsPath(const QString &s);
     [[nodiscard]] static QString fromFsPath(const std::filesystem::path &p);
     [[nodiscard]] static QString normalize(const QString &p);

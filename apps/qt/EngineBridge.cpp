@@ -8,17 +8,6 @@
 #include <QFileInfo>
 #include <QMetaObject>
 
-#include <cstdio>
-
-namespace {
-
-void trace(const char *msg) {
-    std::fprintf(stderr, "CFTRACE %s\n", msg);
-    std::fflush(stderr);
-}
-
-} // namespace
-
 using namespace Qt::StringLiterals;
 
 EngineBridge::EngineBridge(QObject *parent)
@@ -28,14 +17,10 @@ EngineBridge::EngineBridge(QObject *parent)
 }
 
 EngineBridge::~EngineBridge() {
-    trace("bridge dtor entered");
     if (watcher_.isRunning()) {
-        trace("bridge dtor waiting");
         cancelFlag_.store(true, std::memory_order_relaxed);
         watcher_.waitForFinished();
-        trace("bridge dtor waited");
     }
-    trace("bridge dtor exit");
 }
 
 void EngineBridge::setQueueModel(BatchQueueModel *model) {
@@ -60,6 +45,22 @@ QString EngineBridge::fromFsPath(const std::filesystem::path &p) {
 
 QString EngineBridge::normalize(const QString &p) {
     return QDir::cleanPath(QFileInfo(p).absoluteFilePath());
+}
+
+int EngineBridge::lookupRow(const QString &path) const {
+    const QString norm = normalize(path);
+    int row = rowByPath_.value(norm, -1);
+    if (row >= 0) {
+        return row;
+    }
+    // Fallback for filesystem case-insensitivity and separator drift.
+    const QString lowered = norm.toLower();
+    for (auto it = rowByPath_.cbegin(); it != rowByPath_.cend(); ++it) {
+        if (it.key().toLower() == lowered) {
+            return it.value();
+        }
+    }
+    return -1;
 }
 
 QStringList EngineBridge::scanWavFiles(const QString &inputDir, bool recursive) const {
@@ -117,7 +118,6 @@ void EngineBridge::startBatch(
     }
 
     const QStringList files = scanWavFiles(inputDir, recursive);
-    trace("startBatch");
     rowByPath_.clear();
     activeRow_ = -1;
     if (model_ != nullptr) {
@@ -131,7 +131,6 @@ void EngineBridge::startBatch(
     running_ = true;
 
     auto future = QtConcurrent::run([=, this]() -> clipforge::Result<clipforge::services::BatchSummary> {
-        trace("worker entered");
         clipforge::services::BatchRequest req{};
         req.input_dir = toFsPath(inputDir);
         req.output_dir = toFsPath(outputDir);
@@ -140,31 +139,26 @@ void EngineBridge::startBatch(
         req.dry_run = dryRun;
         req.normalize_options.target_dbfs = static_cast<float>(targetDbfs);
         req.trim_options.threshold_dbfs = static_cast<float>(thresholdDbfs);
-        trace("before run_batch");
         auto result = clipforge::services::EngineFacade::run_batch(
             req,
             [this](std::size_t completed, std::size_t total, std::string_view current) {
-                trace("progress callback");
                 const QString cur = QString::fromUtf8(current.data(), static_cast<int>(current.size()));
                 QMetaObject::invokeMethod(this, [=] {
                     onWorkerProgress(completed, total, cur);
                 }, Qt::QueuedConnection);
             },
             &cancelFlag_);
-        trace("run_batch returned");
         return result;
     });
     watcher_.setFuture(future);
     if (future.isFinished()) {
         // setFuture on an already-finished future may not re-emit finished
         // on all Qt versions — deliver it ourselves (guarded by running_).
-        trace("future already finished at setFuture");
         QMetaObject::invokeMethod(this, &EngineBridge::onWorkerFinished, Qt::QueuedConnection);
     }
 }
 
 void EngineBridge::onWorkerProgress(std::size_t completed, std::size_t total, const QString &currentFile) {
-    trace("onWorkerProgress (gui thread)");
     emit totalProgress(static_cast<int>(completed), static_cast<int>(total));
     if (currentFile.isEmpty()) {
         return;
@@ -173,7 +167,7 @@ void EngineBridge::onWorkerProgress(std::size_t completed, std::size_t total, co
     if (model_ == nullptr) {
         return;
     }
-    const int row = rowByPath_.value(normalize(currentFile), -1);
+    const int row = lookupRow(currentFile);
     if (row < 0) {
         return;
     }
@@ -188,27 +182,26 @@ void EngineBridge::onWorkerProgress(std::size_t completed, std::size_t total, co
 }
 
 void EngineBridge::onWorkerFinished() {
-    trace("onWorkerFinished entered (pre-guard)");
     if (!running_) {
-        trace("onWorkerFinished ignored");
         return;
     }
     running_ = false;
-    trace("onWorkerFinished entered");
     const bool wasCancelled = cancelFlag_.load(std::memory_order_relaxed);
     clipforge::Result<clipforge::services::BatchSummary> result;
     try {
         result = watcher_.result();
     } catch (const std::exception &ex) {
-        trace("worker threw");
+        const QString msg = QString::fromUtf8(ex.what());
         if (model_ != nullptr && activeRow_ >= 0) {
-            model_->setRowError(activeRow_, QString::fromUtf8(ex.what()));
+            model_->setRowError(activeRow_, msg);
         }
-        emit batchError(QString::fromUtf8(ex.what()));
+        emit batchError(msg);
+        emit batchFinished(false, msg);
         return;
     } catch (...) {
-        trace("worker threw unknown");
-        emit batchError(u"Worker thread failed with unknown exception"_s);
+        const QString msg = u"Worker thread failed with unknown exception"_s;
+        emit batchError(msg);
+        emit batchFinished(false, msg);
         return;
     }
 
@@ -230,9 +223,10 @@ void EngineBridge::onWorkerFinished() {
     const auto &summary = result.value();
     std::size_t okCount = 0;
     std::size_t failCount = 0;
+    bool markedCancelled = false;
     if (model_ != nullptr) {
         for (const auto &rec : summary.records) {
-            const int row = rowByPath_.value(normalize(fromFsPath(rec.input_path)), -1);
+            const int row = lookupRow(fromFsPath(rec.input_path));
             if (row < 0) {
                 continue;
             }
@@ -245,24 +239,29 @@ void EngineBridge::onWorkerFinished() {
                 model_->setRowError(row, QString::fromStdString(rec.status_message));
             }
         }
-        if (wasCancelled) {
-            for (int r = 0; r < model_->rowCount(); ++r) {
-                const QString st = model_->statusAt(r);
-                if (st == u"pending"_s || st == u"active"_s) {
-                    model_->setRowStatus(r, u"cancelled"_s);
-                }
+        // Reconcile rows the summary did not cover (path-spelling drift).
+        for (int r = 0; r < model_->rowCount(); ++r) {
+            const QString st = model_->statusAt(r);
+            if (st != u"pending"_s && st != u"active"_s) {
+                continue;
             }
-        } else if (activeRow_ >= 0 && model_->statusAt(activeRow_) == u"active"_s) {
-            model_->setRowStatus(activeRow_, u"done"_s);
-            model_->updateProgress(activeRow_, 1.0);
+            if (wasCancelled) {
+                model_->setRowStatus(r, u"cancelled"_s);
+                markedCancelled = true;
+            } else if (failCount == 0) {
+                model_->setRowStatus(r, u"done"_s);
+                model_->updateProgress(r, 1.0);
+            } else {
+                model_->setRowError(r, u"Finished without a record for this file"_s);
+            }
         }
     }
 
-    if (wasCancelled) {
-        trace("emitting batchFinished(false)");
+    // A cancel that lands after the last file still reports success:
+    // nothing was actually cancelled.
+    if (markedCancelled) {
         emit batchFinished(false, u"Cancelled by user"_s);
     } else {
-        trace("emitting batchFinished(true)");
         emit batchFinished(true, QStringLiteral("%1 succeeded, %2 failed").arg(okCount).arg(failCount));
     }
 }

@@ -71,13 +71,10 @@ void BatchQueueModel::updateProgress(int row, double progress) {
     if (row < 0 || row >= rows_.size()) {
         return;
     }
+    // Progress only — status transitions belong to the summary, cancel,
+    // and error paths so a row never flashes "done" before its record lands.
     rows_[row].progress = progress;
-    if (progress >= 1.0) {
-        rows_[row].status = QStringLiteral("done");
-        emit dataChanged(index(row), index(row), {ProgressRole, StatusRole});
-    } else {
-        emit dataChanged(index(row), index(row), {ProgressRole});
-    }
+    emit dataChanged(index(row), index(row), {ProgressRole});
 }
 
 void BatchQueueModel::setRowError(int row, const QString &message) {
