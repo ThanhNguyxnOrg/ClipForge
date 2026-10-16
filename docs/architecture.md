@@ -47,7 +47,14 @@ Qt-ready orchestration for single files and directory batches:
 
 - `inspect_file()`, `normalize_file()`, `trim_file()` — read → process → guarded write.
 - `run_batch()` — discovery (flat/recursive), relative-path mapping, collision/overwrite guards, progress callback, `std::atomic<bool>` cancel token, optional CSV via `write_batch_csv()`.
-- Stateless and thread-safe per call; designed to be wrapped by a `QObject` controller in Phase 2.
+- Stateless and thread-safe per call; wrapped by the Qt `EngineBridge` `QObject` since slice 1.
+
+### 2.5 Qt app 🖥️ (`apps/qt/`)
+Thin presentation layer over `services`, built only with `CLIPFORGE_BUILD_QT_UI=ON`:
+
+- `EngineBridge` — runs `run_batch` on a worker thread (`QtConcurrent` + `QFutureWatcher`), forwards progress/cancel, and maps `BatchSummary` records back into rows. Every run terminates with `batchFinished`; `batchError` is informational.
+- `BatchQueueModel` — `QAbstractListModel` holding per-row file/status/progress/error; row state lives in the model, never in delegates.
+- `qml/` — single-window `Main.qml` (queue, inspector, global bar) + `Theme.qml` tokens; verified headless (`-platform offscreen`) with `qmllint` clean.
 
 ## 3. Cross-Cutting Concerns
 
@@ -59,11 +66,13 @@ Qt-ready orchestration for single files and directory batches:
 `EngineFacade::run_batch()` is sequential today (deterministic CSV ordering) but re-entrant: pass distinct `BatchRequest`s from multiple threads. Long batches poll the atomic cancel token between files.
 
 ### 3.3 Test Strategy 🧪
-- WAV I/O: golden round-trips + adversarial chunks.
-- Processing: exact frame math at 1000 Hz (1 frame = 1 ms).
+- WAV I/O: golden round-trips + adversarial chunks (duplicates, bad metadata, odd padding, extensible GUIDs, non-finite floats).
+- Processing: exact frame math at 1000 Hz (1 frame = 1 ms), all-silent/min-duration/head-pad edges, Analyzer vectors, invalid-parameter and `NaN` rejection.
+- Batch services: dry-run counting, real writes, collisions, existing targets, CSV content, trim operation.
 - DSP: C++ vs ASM differential with bit-exact float comparison across sizes, misalignments, and thresholds.
+- Qt: headless C++ model/bridge tests plus QML smoke (500-row load, warning-free engine start, click-driven batch).
 
 ## 4. Future Hooks (Phase 2+)
-- 🖥️ Qt 6 Quick UI binds directly to `EngineFacade` — no core changes needed.
+- 🌊 Waveform preview (`QQuickPaintedItem` fed with precomputed peaks) and folder picker for the Qt slice 2.
 - ⚡ AVX2 kernels slot behind the same `Backend` enum + `resolve_backend()`.
 - 🎧 New decoders (FLAC/MP3/OGG) only need to produce `AudioBuffer`; processing stays untouched.

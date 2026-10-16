@@ -86,7 +86,7 @@
 - 📁 `--recursive` with relative-tree preservation
 - 👀 `--dry-run` for safe previews
 - 🚧 Collision detection (input == output, duplicate targets, existing files)
-- 📊 Machine-readable **CSV** report + progress callback + cooperative cancel token (Qt-ready 🖥️)
+- 📊 Machine-readable **CSV** report + progress callback + cooperative cancel token (surfaced in the Qt slice-1 app 🖥️)
 
 ### ⚡ Dual DSP Backend: C++23 ↔ NASM SSE2 🥊
 | Kernel | C++23 reference | NASM Win64 SSE2 |
@@ -201,11 +201,12 @@ ctest --preset windows-x64-release --output-on-failure
 
 | Suite | File | Coverage |
 |---|---|---|
-| 🎵 `wav` | `tests/audio/test_wav_io.cpp` | PCM16/24/Float32 round-trip (mono+stereo), odd-size `JUNK` + `data`-before-`fmt `, `NaN` rejection, truncation rejection |
-| 🏭 `processing` | `tests/processing/test_processing.cpp` | Silent-norm safety, −6.02 dBFS → 0.5 linear, frame-exact trim (4f no-pad / 6f tail-pad), source-overwrite `PathCollision` |
+| 🎵 `wav` | `tests/audio/test_wav_io.cpp` | PCM16/24/Float32 round-trip (mono+stereo), odd-size `JUNK` + `data`-before-`fmt `, `NaN`/`Inf` rejection, truncation rejection, duplicate-chunk + inconsistent-metadata + unsupported-format adversarial cases, valid/rejected `WAVE_FORMAT_EXTENSIBLE` |
+| 🏭 `processing` | `tests/processing/test_processing.cpp` | Silent-norm safety, −6.02 dBFS → 0.5 linear, frame-exact trim (no-pad / tail-pad / head-pad), all-silent → 1 frame, min-duration filtering, Analyzer peak/RMS/clip/silence + empty report, invalid-parameter and `NaN` rejection, source-overwrite `PathCollision` |
 | 🥊 `dsp` | `tests/dsp/test_dsp_differential.cpp` | 20 sizes (0 → 65537) × 4 misalignments × 6 thresholds, bit-exact `float` equality, canary guards, nullptr safety |
+| 📦 `batch` | `tests/services/test_batch.cpp` | Dry-run counting without writes, real multi-file writes, missing input dir, input==output collision, existing-target refusal, CSV report content, trim operation |
 
-**Last verified:** 2026-10-15 — Windows x64, g++ 16.1 (MSYS2 UCRT64), C++ backend — **3/3 suites PASS** ✅✅✅
+**Last verified:** 2026-10-16 — Windows x64, g++ 16.1 (MSYS2 UCRT64), C++ backend — **4/4 suites PASS** ✅✅✅✅ · CI: MSVC+NASM core 3/3 + Qt 5/5 (`qt_bridge`, `qt_smoke`) ✅
 
 ---
 
@@ -249,9 +250,10 @@ ClipForge/
 │   └── services/engine_facade.hpp # 🏭 Qt-ready facade, batch, CSV, cancel
 ├── src/                           # C++ impl + dsp/asm/win64/kernels_sse2.asm
 ├── apps/cli/main.cpp              # analyze | normalize | trim | batch
-├── tests/                         # wav + processing + dsp-differential
+├── apps/qt/                       # 🖥️ Qt 6 Quick slice 1: bridge, queue model, QML, headless tests
+├── tests/                         # wav + processing + dsp-differential + batch
 ├── benchmarks/main_bench.cpp
-├── docs/                          # architecture, formats, assembly, building
+├── docs/                          # architecture, formats, assembly, building, release
 └── CMakeLists.txt + CMakePresets.json
 ```
 
@@ -279,7 +281,8 @@ See [docs/architecture.md](docs/architecture.md) for the full layered-design wri
 ## 🗺️ Roadmap
 
 - [x] ✅ **Phase 1 (MVP):** parser/writer, analyze, normalize, trim, batch, dual DSP, CLI, tests, bench
-- [ ] 🖥️ **Phase 2:** Qt 6 Quick/QML UI — queue, waveform 🌊, progress/cancel (`EngineFacade` is already UI-ready)
+- [x] 🖥️ **Phase 2 slice 1:** Qt 6 Quick batch app — queue, progress/cancel, theme, headless tests, `windeployqt` CI artifact
+- [ ] 🌊 **Phase 2 slice 2:** waveform preview, folder picker, DSP parameter fields, CSV toggle
 - [ ] ⚡ AVX2 backend (after SSE2 baseline on target hardware)
 - [ ] 🎧 FLAC / MP3 / OGG decode
 - [x] 🤖 Automation: Dependabot + auto-merge + CI + Windows release (see [📦 docs/release-process.md](docs/release-process.md))
@@ -290,7 +293,7 @@ See [docs/architecture.md](docs/architecture.md) for the full layered-design wri
 
 | Workflow | File | What it proves |
 |---|---|---|
-| 🧪 CI | `.github/workflows/ci.yml` | Ubuntu g++ + Windows MSVC/NASM build, CTest 3/3, **ASM gate** (`ASM Backend Compiled: YES`), version check. No `continue-on-error` on gates. |
+| 🧪 CI | `.github/workflows/ci.yml` | Ubuntu g++ + Windows MSVC/NASM build, core CTest 3/3, **ASM gate** (`ASM Backend Compiled: YES`), version check, Qt 6.8 job (release/tag/dispatch-gated) with `qmllint` + offscreen CTest 5/5 + `windeployqt` artifact. No `continue-on-error` on gates. |
 | 🤖 Auto-merge | `.github/workflows/auto-merge-dependabot.yml` | Org-standard `ThanhNguyxnAgent[bot]` flow: safe updates auto-approved (`--auto --squash`, waits for CI), major prod updates flagged to `ThanhNguyxn07,RealThanhNguyxn`. |
 | 📦 Release | `.github/workflows/release.yml` | `Release: vX.Y.Z` / tag / dispatch → rebuild + retest + ASM gate **in the same job** → `vX.Y.Z` tag + ZIP/EXE assets + CHANGELOG notes. |
 | 👥 Auto-assign | `.github/workflows/auto-assign.yml` | Human-only routing via org reusable workflow. |

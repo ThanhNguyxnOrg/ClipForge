@@ -36,6 +36,7 @@ Dependabot pushes never trigger releases (`github.actor != 'dependabot[bot]'` gu
 3. 🥊 **ASM gate**: `clipforge-bench` must print `ASM Backend Compiled: YES`. A silent C++ fallback fails the job — this is the fake-pass guard from the org audit.
 4. 📝 Extract the `CHANGELOG.md` section for the version as release notes.
 5. 📦 Package `ClipForge-<ver>-windows-x64.zip` (+ standalone `.exe`s) and ensure the `vX.Y.Z` tag exists (bot identity `ThanhNguyxnAgent[bot]`).
+   Qt app note: `release.yml` ships core/CLI only — the Qt `windeployqt` ZIP lives on CI run artifacts until Qt packaging joins the release job.
 6. 🚀 Publish via `softprops/action-gh-release` (idempotent: existing tag → assets updated).
 
 ## 4. Verify a Release (API, not vibes)

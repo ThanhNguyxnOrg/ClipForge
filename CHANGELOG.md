@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Qt 6 Quick slice-1 desktop app: batch queue, per-file and overall progress, cancel, headless offscreen tests, and a `windeployqt` CI artifact.
+- Batch service test suite: dry-run counting, real writes, collisions, existing targets, CSV content, trim operation.
+- WAV adversarial coverage: duplicate chunks, inconsistent metadata, unsupported formats, empty/missing chunks, odd-padding, extensible subformats, non-finite floats.
+- Processing edge coverage: all-silent trim, min-duration filtering, head padding, Analyzer vectors, invalid parameters, `NaN` rejection.
+- Light-mode logo variant with drop shadow; README switches via `<picture>` on `prefers-color-scheme`.
+- Release-gated Qt CI job (release commits, tags, manual dispatch) to avoid runner spam.
 
 ### Changed
 - N/A
