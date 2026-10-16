@@ -21,6 +21,7 @@
         "tests/audio/test_wav_io.cpp",
         "tests/processing/test_processing.cpp",
         "tests/dsp/test_dsp_differential.cpp",
+        "tests/services/test_batch.cpp",
         "-o",
         "${workspaceFolder}/build/vscode/clipforge-tests.exe"
       ],

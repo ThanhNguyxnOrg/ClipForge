@@ -20,6 +20,10 @@ int main(int argc, char* argv[]) {
             clipforge::tests::run_dsp_differential_tests();
             std::cout << "[PASS] DSP C++ vs NASM SSE2 differential tests\n";
         }
+        if (filter == "all" || filter == "batch") {
+            clipforge::tests::run_batch_tests();
+            std::cout << "[PASS] Batch service & safety tests\n";
+        }
     } catch (const std::exception& ex) {
         std::cerr << "[FAIL] " << ex.what() << "\n";
         return 1;

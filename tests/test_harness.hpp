@@ -39,5 +39,6 @@ inline void require_near(double a, double b, double tol, const char* file, int l
 void run_wav_io_tests();
 void run_processing_tests();
 void run_dsp_differential_tests();
+void run_batch_tests();
 
 } // namespace clipforge::tests

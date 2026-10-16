@@ -82,12 +82,14 @@ if(CLIPFORGE_BUILD_TESTS)
         tests/audio/test_wav_io.cpp
         tests/processing/test_processing.cpp
         tests/dsp/test_dsp_differential.cpp
+        tests/services/test_batch.cpp
     )
     target_link_libraries(clipforge-tests PRIVATE clipforge_core)
 
     add_test(NAME clipforge.wav_io           COMMAND clipforge-tests wav)
     add_test(NAME clipforge.processing       COMMAND clipforge-tests processing)
     add_test(NAME clipforge.dsp_differential COMMAND clipforge-tests dsp)
+    add_test(NAME clipforge.batch            COMMAND clipforge-tests batch)
 endif()
 
 if(CLIPFORGE_BUILD_QT_UI)
