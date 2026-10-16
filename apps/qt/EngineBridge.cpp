@@ -148,6 +148,7 @@ void EngineBridge::startBatch(
 }
 
 void EngineBridge::onWorkerProgress(std::size_t completed, std::size_t total, const QString &currentFile) {
+    trace("onWorkerProgress (gui thread)");
     emit totalProgress(static_cast<int>(completed), static_cast<int>(total));
     if (currentFile.isEmpty()) {
         return;
