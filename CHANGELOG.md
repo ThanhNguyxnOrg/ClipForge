@@ -46,5 +46,6 @@ First public MVP release.
 - 🎨 Light-mode logo variant with drop shadow; README switches via `<picture>`.
 - 🤖 Release-gated Qt CI job (release commits, tags, manual dispatch).
 
-[Unreleased]: https://github.com/ThanhNguyxnOrg/ClipForge/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ThanhNguyxnOrg/ClipForge/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/ThanhNguyxnOrg/ClipForge/releases/tag/v0.1.1
 [0.1.0]: https://github.com/ThanhNguyxnOrg/ClipForge/releases/tag/v0.1.0

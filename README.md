@@ -208,7 +208,7 @@ ctest --preset windows-x64-release --output-on-failure
 | 🥊 `dsp` | `tests/dsp/test_dsp_differential.cpp` | 20 sizes (0 → 65537) × 4 misalignments × 6 thresholds, bit-exact `float` equality, canary guards, nullptr safety |
 | 📦 `batch` | `tests/services/test_batch.cpp` | Dry-run counting without writes, real multi-file writes, missing input dir, input==output collision, existing-target refusal, CSV report content, trim operation |
 
-**Last verified:** 2026-10-16 — Windows x64, g++ 16.1 (MSYS2 UCRT64), C++ backend — **4/4 suites PASS** ✅✅✅✅ · CI: MSVC+NASM core 3/3 + Qt 5/5 (`qt_bridge`, `qt_smoke`) ✅
+**Last verified:** 2026-10-16 — Windows x64, g++ 16.1 (MSYS2 UCRT64), C++ backend — **4/4 suites PASS** ✅✅✅✅ · CI: MSVC+NASM core 4/4 + Qt 6/6 (`qt_bridge`, `qt_smoke`) ✅
 
 ---
 
@@ -295,7 +295,7 @@ See [docs/architecture.md](docs/architecture.md) for the full layered-design wri
 
 | Workflow | File | What it proves |
 |---|---|---|
-| 🧪 CI | `.github/workflows/ci.yml` | Ubuntu g++ + Windows MSVC/NASM build, core CTest 3/3, **ASM gate** (`ASM Backend Compiled: YES`), version check, Qt 6.8 job (release/tag/dispatch-gated) with `qmllint` + offscreen CTest 5/5 + `windeployqt` artifact. No `continue-on-error` on gates. |
+| 🧪 CI | `.github/workflows/ci.yml` | Ubuntu g++ + Windows MSVC/NASM build, core CTest 4/4, **ASM gate** (`ASM Backend Compiled: YES`), version check, Qt 6.8 job (release/tag/dispatch-gated) with `qmllint` + offscreen CTest 6/6 + `windeployqt` artifact. No `continue-on-error` on gates. |
 | 🤖 Auto-merge | `.github/workflows/auto-merge-dependabot.yml` | Org-standard `ThanhNguyxnAgent[bot]` flow: safe updates auto-approved (`--auto --squash`, waits for CI), major prod updates flagged to `ThanhNguyxn07,RealThanhNguyxn`. |
 | 📦 Release | `.github/workflows/release.yml` | `Release: vX.Y.Z` / tag / dispatch → rebuild + retest + ASM gate **in the same job** → `vX.Y.Z` tag + ZIP/EXE assets + CHANGELOG notes. |
 | 👥 Auto-assign | `.github/workflows/auto-assign.yml` | Human-only routing via org reusable workflow. |

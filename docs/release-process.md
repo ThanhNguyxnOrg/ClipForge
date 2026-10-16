@@ -6,9 +6,9 @@ How ClipForge ships `vX.Y.Z` Windows x64 releases — and how to verify them lik
 
 | Source | File / Place | Example |
 |---|---|---|
-| 🔧 Build truth | `CMakeLists.txt` → `project(ClipForge VERSION 0.1.0 ...)` | `0.1.0` |
-| 📝 Human notes | `CHANGELOG.md` → `## [0.1.0] - YYYY-MM-DD` | must exist before release |
-| 🏷️ Git tag | `v0.1.0` (created by the workflow if missing) | `v` prefix, SemVer |
+| 🔧 Build truth | `CMakeLists.txt` → `project(ClipForge VERSION 0.1.1 ...)` | `0.1.1` |
+| 📝 Human notes | `CHANGELOG.md` → `## [0.1.1] - YYYY-MM-DD` | must exist before release |
+| 🏷️ Git tag | `v0.1.1` (created by the workflow if missing) | `v` prefix, SemVer |
 
 The `check-trigger` job **fails the run** if trigger version ≠ `CMakeLists.txt`, or if `CHANGELOG.md` lacks the entry. Fix the files, not the workflow.
 
@@ -44,12 +44,12 @@ Dependabot pushes never trigger releases (`github.actor != 'dependabot[bot]'` gu
 
 ```powershell
 # 1. Release exists with assets:
-gh release view v0.1.0 --repo ThanhNguyxnOrg/ClipForge
+gh release view v0.1.1 --repo ThanhNguyxnOrg/ClipForge
 
 # 2. Tag points at the right commit:
 git ls-remote --tags origin | Select-String 'v0\.1\.0'
 
-# 3. Workflow run that produced it (logs: NASM line, CTest 3/3, ASM YES):
+# 3. Workflow run that produced it (logs: NASM line, CTest 4/4 core + 6/6 Qt, ASM YES):
 #    Actions → Release 📦 → run → build-release → steps above
 ```
 
