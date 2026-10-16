@@ -10,6 +10,7 @@
 
 #include "clipforge/audio/audio_buffer.hpp"
 #include "clipforge/audio/wav_writer.hpp"
+#include "clipforge/services/engine_facade.hpp"
 
 using namespace Qt::StringLiterals;
 
@@ -45,6 +46,35 @@ private slots:
     void init_empty_model() {
         BatchQueueModel model;
         QCOMPARE(model.rowCount(), 0);
+    }
+
+    void run_batch_synchronous() {
+        std::fprintf(stderr, "CFTRACE sync test entry\n");
+        std::fflush(stderr);
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        QVERIFY(!writeGoodWav(dir, u"a.wav"_s).isEmpty());
+
+        clipforge::services::BatchRequest req{};
+        req.input_dir = std::filesystem::path(dir.path().toStdWString());
+        req.output_dir = std::filesystem::path((dir.path() + u"/out"_s).toStdWString());
+        req.operation = clipforge::services::BatchOperation::Normalize;
+        req.dry_run = true;
+        int callbacks = 0;
+        auto res = clipforge::services::EngineFacade::run_batch(
+            req,
+            [&](std::size_t, std::size_t, std::string_view current) {
+                ++callbacks;
+                const QString cur = QString::fromUtf8(current.data(), static_cast<int>(current.size()));
+                Q_UNUSED(cur);
+            },
+            nullptr);
+        std::fprintf(stderr, "CFTRACE sync run_batch returned have=%d cb=%d\n",
+                     static_cast<int>(res.has_value()), callbacks);
+        std::fflush(stderr);
+        QVERIFY(res.has_value());
+        QCOMPARE(res->succeeded_count, static_cast<std::size_t>(1));
+        QCOMPARE(callbacks, 2);
     }
 
     void non_wav_ignored() {
