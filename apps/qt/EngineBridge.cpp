@@ -2,11 +2,22 @@
 
 #include <QtConcurrent>
 
-#include <QDebug>
+#include <QtGlobal>
 #include <QDir>
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QMetaObject>
+
+#include <cstdio>
+
+namespace {
+
+void trace(const char *msg) {
+    std::fprintf(stderr, "CFTRACE %s\n", msg);
+    std::fflush(stderr);
+}
+
+} // namespace
 
 using namespace Qt::StringLiterals;
 
@@ -90,7 +101,7 @@ void EngineBridge::startBatch(
     }
 
     const QStringList files = scanWavFiles(inputDir, recursive);
-    qDebug() << "CFTRACE startBatch files:" << files.size() << "op:" << operation;
+    trace("startBatch");
     rowByPath_.clear();
     activeRow_ = -1;
     if (model_ != nullptr) {
@@ -104,7 +115,7 @@ void EngineBridge::startBatch(
     running_ = true;
 
     auto future = QtConcurrent::run([=, this]() -> clipforge::Result<clipforge::services::BatchSummary> {
-        qDebug() << "CFTRACE worker entered";
+        trace("worker entered");
         clipforge::services::BatchRequest req{};
         req.input_dir = toFsPath(inputDir);
         req.output_dir = toFsPath(outputDir);
@@ -128,7 +139,7 @@ void EngineBridge::startBatch(
     if (future.isFinished()) {
         // setFuture on an already-finished future may not re-emit finished
         // on all Qt versions — deliver it ourselves (guarded by running_).
-        qDebug() << "CFTRACE future already finished at setFuture";
+        trace("future already finished at setFuture");
         QMetaObject::invokeMethod(this, &EngineBridge::onWorkerFinished, Qt::QueuedConnection);
     }
 }
@@ -158,13 +169,27 @@ void EngineBridge::onWorkerProgress(std::size_t completed, std::size_t total, co
 
 void EngineBridge::onWorkerFinished() {
     if (!running_) {
-        qDebug() << "CFTRACE onWorkerFinished ignored (not running)";
+        trace("onWorkerFinished ignored");
         return;
     }
     running_ = false;
-    qDebug() << "CFTRACE onWorkerFinished entered";
+    trace("onWorkerFinished entered");
     const bool wasCancelled = cancelFlag_.load(std::memory_order_relaxed);
-    const auto result = watcher_.result();
+    clipforge::Result<clipforge::services::BatchSummary> result;
+    try {
+        result = watcher_.result();
+    } catch (const std::exception &ex) {
+        trace("worker threw");
+        if (model_ != nullptr && activeRow_ >= 0) {
+            model_->setRowError(activeRow_, QString::fromUtf8(ex.what()));
+        }
+        emit batchError(QString::fromUtf8(ex.what()));
+        return;
+    } catch (...) {
+        trace("worker threw unknown");
+        emit batchError(u"Worker thread failed with unknown exception"_s);
+        return;
+    }
 
     if (!result.has_value()) {
         if (model_ != nullptr && activeRow_ >= 0) {
@@ -206,10 +231,10 @@ void EngineBridge::onWorkerFinished() {
     }
 
     if (wasCancelled) {
-        qDebug() << "CFTRACE emitting batchFinished(false)";
+        trace("emitting batchFinished(false)");
         emit batchFinished(false, u"Cancelled by user"_s);
     } else {
-        qDebug() << "CFTRACE emitting batchFinished(true)";
+        trace("emitting batchFinished(true)");
         emit batchFinished(true, QStringLiteral("%1 succeeded, %2 failed").arg(okCount).arg(failCount));
     }
 }
