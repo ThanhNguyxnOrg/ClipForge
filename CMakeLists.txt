@@ -104,9 +104,23 @@ if(CLIPFORGE_BUILD_QT_UI)
     qt_add_executable(clipforge-ui apps/qt/main.cpp)
     target_link_libraries(clipforge-ui PRIVATE Qt6::Gui Qt6::Quick clipforge_qt clipforge_core)
 
+    qt_add_qml_module(clipforge-ui
+        URI ClipForge
+        VERSION 1.0
+        QML_FILES
+            apps/qt/qml/Main.qml
+            apps/qt/qml/Theme.qml
+        RESOURCES
+            assets/clipforge-logo.svg
+    )
+
     add_executable(tst_bridge apps/qt/tests/tst_bridge.cpp)
     target_link_libraries(tst_bridge PRIVATE Qt6::Test Qt6::Core clipforge_qt clipforge_core)
     add_test(NAME clipforge.qt_bridge COMMAND tst_bridge)
+
+    add_executable(tst_smoke apps/qt/tests/tst_smoke.cpp)
+    target_link_libraries(tst_smoke PRIVATE Qt6::Test Qt6::Gui Qt6::Qml Qt6::Quick clipforge_qt clipforge_core)
+    add_test(NAME clipforge.qt_smoke COMMAND tst_smoke)
 
     message(STATUS "ClipForge: Qt 6 Quick UI enabled.")
 endif()

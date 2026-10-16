@@ -199,3 +199,21 @@ jobs:
 
       - name: Test (CTest)
         run: ctest --preset windows-x64-release --output-on-failure
+
+      - name: Package (windeployqt)
+        shell: pwsh
+        run: |
+          $ver = (Select-String -Path CMakeLists.txt -Pattern "VERSION ([0-9]+\.[0-9]+\.[0-9]+)").Matches[0].Groups[1].Value
+          New-Item -ItemType Directory -Force -Path dist, artifacts | Out-Null
+          Copy-Item build/release/clipforge-ui.exe dist/
+          windeployqt --qmldir apps/qt/qml --release --dir dist dist/clipforge-ui.exe
+          Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vc_redist.x64.exe -OutFile dist/vc_redist.x64.exe
+          Compress-Archive -Path dist/* -DestinationPath "artifacts/ClipForge-$ver-windows-x64-qt.zip" -Force
+          Get-ChildItem artifacts | Format-Table Name, Length
+
+      - name: Upload Qt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClipForge-windows-x64-qt
+          path: artifacts/ClipForge-*-windows-x64-qt.zip
+          if-no-files-found: error
