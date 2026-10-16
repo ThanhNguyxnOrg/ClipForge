@@ -142,9 +142,19 @@ private slots:
 
 #include <cstdio>
 
+#include <QCoreApplication>
+#include <QThread>
+
 int main(int argc, char *argv[]) {
     std::setvbuf(stdout, nullptr, _IONBF, 0);
+    std::fprintf(stderr, "CFTRACE main entry, app=%p thread=%p\n",
+                 static_cast<void *>(QCoreApplication::instance()),
+                 static_cast<void *>(QThread::currentThread()));
+    std::fflush(stderr);
     TstBridge tc;
-    return QTest::qExec(&tc, argc, argv);
+    const int rc = QTest::qExec(&tc, argc, argv);
+    std::fprintf(stderr, "CFTRACE main exit rc=%d\n", rc);
+    std::fflush(stderr);
+    return rc;
 }
 #include "tst_bridge.moc"
