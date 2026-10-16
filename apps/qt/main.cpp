@@ -1,11 +1,14 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QtQml/QQmlExtensionPlugin>
 
 #include "BatchQueueModel.hpp"
 #include "EngineBridge.hpp"
 
 using namespace Qt::StringLiterals;
+
+Q_IMPORT_QML_PLUGIN(ClipForgePlugin)
 
 int main(int argc, char *argv[]) {
     QGuiApplication app(argc, argv);

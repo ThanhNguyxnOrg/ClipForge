@@ -114,6 +114,9 @@ if(CLIPFORGE_BUILD_QT_UI)
         RESOURCES
             assets/clipforge-logo.svg
     )
+    set_source_files_properties(apps/qt/qml/Theme.qml
+        PROPERTIES QT_QML_SINGLETON_TYPE TRUE
+    )
 
     add_executable(tst_bridge apps/qt/tests/tst_bridge.cpp)
     target_link_libraries(tst_bridge PRIVATE Qt6::Test Qt6::Core clipforge_qt clipforge_core)
