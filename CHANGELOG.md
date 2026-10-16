@@ -5,22 +5,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-### Added
-- Qt 6 Quick slice-1 desktop app: batch queue, per-file and overall progress, cancel, headless offscreen tests, and a `windeployqt` CI artifact.
-- Batch service test suite: dry-run counting, real writes, collisions, existing targets, CSV content, trim operation.
-- WAV adversarial coverage: duplicate chunks, inconsistent metadata, unsupported formats, empty/missing chunks, odd-padding, extensible subformats, non-finite floats.
-- Processing edge coverage: all-silent trim, min-duration filtering, head padding, Analyzer vectors, invalid parameters, `NaN` rejection.
-- Light-mode logo variant with drop shadow; README switches via `<picture>` on `prefers-color-scheme`.
-- Release-gated Qt CI job (release commits, tags, manual dispatch) to avoid runner spam.
-
-### Changed
-- N/A
-
-### Fixed
-- N/A
-
 ## [0.1.0] - 2026-10-15 🎉
 
 First public MVP release.
@@ -44,7 +28,14 @@ First public MVP release.
 - 📈 `clipforge-bench`: warmup + median timing + CSV output.
 - 🏗️ CMake 3.25+ build with presets (`windows-x64-release` / `windows-x64-debug`),
   optional NASM auto-detection with clean C++ fallback.
-- 📚 Docs: architecture, audio-format support, assembly design, building guide.
+- 📚 Docs: architecture, audio-format support, assembly design, building guide,
+  release process, Qt slice-1 notes.
+- 🖥️ Qt 6 Quick slice-1 desktop app: batch queue, per-file and overall progress,
+  cancel, headless offscreen tests, and a `windeployqt` CI artifact.
+- 🧪 Extended coverage: batch service suite (dry-run, collisions, CSV), WAV
+  adversarial cases, processing edges, Analyzer vectors, `NaN` rejection.
+- 🎨 Light-mode logo variant with drop shadow; README switches via `<picture>`.
+- 🤖 Release-gated Qt CI job (release commits, tags, manual dispatch).
 
 [Unreleased]: https://github.com/ThanhNguyxnOrg/ClipForge/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/ThanhNguyxnOrg/ClipForge/releases/tag/v0.1.0
