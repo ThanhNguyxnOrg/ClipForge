@@ -25,6 +25,18 @@ static void twait(const char *what, bool v) {
     std::fflush(stderr);
 }
 
+// Bounded poll that does not depend on QSignalSpy::wait's nested loop:
+// returns true as soon as the spy records the signal.
+static bool waitFor(QSignalSpy &spy, int timeoutMs) {
+    const int step = 100;
+    int waited = 0;
+    while (spy.isEmpty() && waited < timeoutMs) {
+        QTest::qWait(step);
+        waited += step;
+    }
+    return !spy.isEmpty();
+}
+
 static std::atomic<bool> g_alive{true};
 
 static void theartbeat() {
@@ -116,7 +128,7 @@ private slots:
         bridge.setQueueModel(&model);
         QSignalSpy finished(&bridge, &EngineBridge::batchFinished);
         bridge.startBatch(dir.path(), dir.path() + u"/out"_s, u"normalize"_s, -1.0, -45.0, false, true);
-        const bool w30a = finished.wait(30000);
+        const bool w30a = waitFor(finished, 30000);
         twait("nonwav-30s", w30a);
         QVERIFY(w30a);
         QCOMPARE(model.rowCount(), 1);
@@ -138,7 +150,7 @@ private slots:
         bridge.setQueueModel(&model);
         QSignalSpy finished(&bridge, &EngineBridge::batchFinished);
         bridge.startBatch(dir.path(), dir.path() + u"/out"_s, u"normalize"_s, -1.0, -45.0, false, true);
-        const bool w30b = finished.wait(30000);
+        const bool w30b = waitFor(finished, 30000);
         twait("failedfile-30s", w30b);
         QVERIFY(w30b);
         QCOMPARE(finished.at(0).at(0).toBool(), true);
@@ -178,7 +190,7 @@ private slots:
                              }
                          });
         bridge.startBatch(dir.path(), dir.path() + u"/out"_s, u"normalize"_s, -1.0, -45.0, false, true);
-        const bool w60 = finished.wait(60000);
+        const bool w60 = waitFor(finished, 60000);
         twait("cancel-60s", w60);
         QVERIFY(w60);
         QCOMPARE(model.rowCount(), 200);
