@@ -124,15 +124,18 @@ void EngineBridge::startBatch(
         req.dry_run = dryRun;
         req.normalize_options.target_dbfs = static_cast<float>(targetDbfs);
         req.trim_options.threshold_dbfs = static_cast<float>(thresholdDbfs);
+        trace("before run_batch");
         auto result = clipforge::services::EngineFacade::run_batch(
             req,
             [this](std::size_t completed, std::size_t total, std::string_view current) {
+                trace("progress callback");
                 const QString cur = QString::fromUtf8(current.data(), static_cast<int>(current.size()));
                 QMetaObject::invokeMethod(this, [=] {
                     onWorkerProgress(completed, total, cur);
                 }, Qt::QueuedConnection);
             },
             &cancelFlag_);
+        trace("run_batch returned");
         return result;
     });
     watcher_.setFuture(future);
