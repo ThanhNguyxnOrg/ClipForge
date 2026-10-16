@@ -5,8 +5,8 @@
 
 #include <QFile>
 
-#include "BatchQueueModel.h"
-#include "EngineBridge.h"
+#include "BatchQueueModel.hpp"
+#include "EngineBridge.hpp"
 
 #include "clipforge/audio/audio_buffer.hpp"
 #include "clipforge/audio/wav_writer.hpp"
