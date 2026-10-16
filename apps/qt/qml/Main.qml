@@ -10,7 +10,11 @@ ApplicationWindow {
     minimumWidth: 720
     minimumHeight: 480
     title: "ClipForge Batch"
-    color: Theme.navy
+    color: theme.navy
+
+    Theme {
+        id: theme
+    }
 
     property int totalDone: 0
     property int totalCount: 0
@@ -38,7 +42,7 @@ ApplicationWindow {
             text: "ClipForge Batch"
             font.pixelSize: 22
             font.bold: true
-            color: Theme.bone
+            color: theme.bone
         }
 
         RowLayout {
@@ -48,14 +52,14 @@ ApplicationWindow {
                 objectName: "inputDirField"
                 Layout.fillWidth: true
                 placeholderText: "Input directory"
-                color: Theme.bone
+                color: theme.bone
             }
             TextField {
                 id: outputDirField
                 objectName: "outputDirField"
                 Layout.fillWidth: true
                 placeholderText: "Output directory"
-                color: Theme.bone
+                color: theme.bone
             }
             ComboBox {
                 id: operationBox
@@ -96,8 +100,8 @@ ApplicationWindow {
                             Layout.fillWidth: true
                             text: fileName
                             elide: Text.ElideMiddle
-                            color: Theme.bone
-                            font.family: Theme.monoFont
+                            color: theme.bone
+                            font.family: theme.monoFont
                         }
                         RowLayout {
                             ProgressBar {
@@ -108,7 +112,7 @@ ApplicationWindow {
                             }
                             Label {
                                 text: status
-                                color: Theme.statusColor(status)
+                                color: theme.statusColor(status)
                             }
                         }
                         Label {
@@ -116,7 +120,7 @@ ApplicationWindow {
                             text: errorMessage
                             visible: errorMessage !== ""
                             wrapMode: Text.WrapAnywhere
-                            color: Theme.danger
+                            color: theme.danger
                         }
                     }
                 }
@@ -128,7 +132,7 @@ ApplicationWindow {
                     wrapMode: Text.WordWrap
                     horizontalAlignment: Text.AlignHCenter
                     width: parent.width - 32
-                    color: Theme.slate
+                    color: theme.slate
                 }
             }
 
@@ -138,18 +142,18 @@ ApplicationWindow {
                 Label {
                     text: "Inspector"
                     font.bold: true
-                    color: Theme.bone
+                    color: theme.bone
                 }
                 Label {
                     Layout.fillWidth: true
                     text: queueView.currentItem ? queueView.currentItem.fileName : "No selection"
                     wrapMode: Text.WrapAnywhere
-                    color: Theme.bone
-                    font.family: Theme.monoFont
+                    color: theme.bone
+                    font.family: theme.monoFont
                 }
                 Label {
                     text: queueView.currentItem ? ("Status: " + queueView.currentItem.status) : ""
-                    color: Theme.slate
+                    color: theme.slate
                 }
             }
         }
@@ -188,7 +192,7 @@ ApplicationWindow {
             objectName: "statusLine"
             Layout.fillWidth: true
             text: "Idle."
-            color: Theme.slate
+            color: theme.slate
         }
     }
 }
