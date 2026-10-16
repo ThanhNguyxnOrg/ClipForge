@@ -28,10 +28,14 @@ EngineBridge::EngineBridge(QObject *parent)
 }
 
 EngineBridge::~EngineBridge() {
+    trace("bridge dtor entered");
     if (watcher_.isRunning()) {
+        trace("bridge dtor waiting");
         cancelFlag_.store(true, std::memory_order_relaxed);
         watcher_.waitForFinished();
+        trace("bridge dtor waited");
     }
+    trace("bridge dtor exit");
 }
 
 void EngineBridge::setQueueModel(BatchQueueModel *model) {
@@ -172,6 +176,7 @@ void EngineBridge::onWorkerProgress(std::size_t completed, std::size_t total, co
 }
 
 void EngineBridge::onWorkerFinished() {
+    trace("onWorkerFinished entered (pre-guard)");
     if (!running_) {
         trace("onWorkerFinished ignored");
         return;

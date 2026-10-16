@@ -92,7 +92,9 @@ private slots:
         bridge.setQueueModel(&model);
         QSignalSpy finished(&bridge, &EngineBridge::batchFinished);
         bridge.startBatch(dir.path(), dir.path() + u"/out"_s, u"normalize"_s, -1.0, -45.0, false, true);
-        QVERIFY(finished.wait(30000));
+        const bool w30a = finished.wait(30000);
+        twait("nonwav-30s", w30a);
+        QVERIFY(w30a);
         QCOMPARE(model.rowCount(), 1);
         QCOMPARE(model.fileAt(0), wav);
     }
@@ -112,7 +114,9 @@ private slots:
         bridge.setQueueModel(&model);
         QSignalSpy finished(&bridge, &EngineBridge::batchFinished);
         bridge.startBatch(dir.path(), dir.path() + u"/out"_s, u"normalize"_s, -1.0, -45.0, false, true);
-        QVERIFY(finished.wait(30000));
+        const bool w30b = finished.wait(30000);
+        twait("failedfile-30s", w30b);
+        QVERIFY(w30b);
         QCOMPARE(finished.at(0).at(0).toBool(), true);
         QCOMPARE(model.rowCount(), 3);
         int done = 0;
@@ -150,7 +154,9 @@ private slots:
                              }
                          });
         bridge.startBatch(dir.path(), dir.path() + u"/out"_s, u"normalize"_s, -1.0, -45.0, false, true);
-        QVERIFY(finished.wait(60000));
+        const bool w60 = finished.wait(60000);
+        twait("cancel-60s", w60);
+        QVERIFY(w60);
         QCOMPARE(model.rowCount(), 200);
         int pending = 0;
         int active = 0;
@@ -171,6 +177,11 @@ private slots:
 };
 
 #include <cstdio>
+
+static void twait(const char *what, bool v) {
+    std::fprintf(stderr, "CFTRACE wait %s -> %d\n", what, static_cast<int>(v));
+    std::fflush(stderr);
+}
 
 #include <QCoreApplication>
 #include <QThread>
