@@ -12,6 +12,8 @@
 #include "BatchQueueModel.hpp"
 #include "EngineBridge.hpp"
 
+#include <cstdio>
+
 #include "clipforge/audio/audio_buffer.hpp"
 #include "clipforge/audio/wav_writer.hpp"
 
@@ -65,6 +67,10 @@ private slots:
         engine.rootContext()->setContextProperty(u"bridge"_s, &bridge);
         engine.loadFromModule(u"ClipForge"_s, u"Main"_s);
         QVERIFY(!engine.rootObjects().isEmpty());
+        for (const QString &w : warnings) {
+            std::fprintf(stderr, "CFTRACE runtime qml warning: %s\n", w.toUtf8().constData());
+        }
+        std::fflush(stderr);
         QVERIFY(warnings.isEmpty());
     }
 
