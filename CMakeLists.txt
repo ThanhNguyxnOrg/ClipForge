@@ -104,6 +104,12 @@ if(CLIPFORGE_BUILD_QT_UI)
     qt_add_executable(clipforge-ui apps/qt/main.cpp)
     target_link_libraries(clipforge-ui PRIVATE Qt6::Gui Qt6::Quick clipforge_qt clipforge_qtplugin clipforge_core)
 
+    # Singleton flag must precede qt_add_qml_module: the module reads
+    # source-file properties when the call runs.
+    set_source_files_properties(apps/qt/qml/Theme.qml
+        PROPERTIES QT_QML_SINGLETON_TYPE TRUE
+    )
+
     # QML lives in the static lib so both the app and the smoke test link it.
     qt_add_qml_module(clipforge_qt
         URI ClipForge
@@ -113,9 +119,6 @@ if(CLIPFORGE_BUILD_QT_UI)
             apps/qt/qml/Theme.qml
         RESOURCES
             assets/clipforge-logo.svg
-    )
-    set_source_files_properties(apps/qt/qml/Theme.qml
-        PROPERTIES QT_QML_SINGLETON_TYPE TRUE
     )
 
     add_executable(tst_bridge apps/qt/tests/tst_bridge.cpp)

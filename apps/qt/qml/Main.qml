@@ -12,8 +12,8 @@ ApplicationWindow {
     title: "ClipForge Batch"
     color: Theme.navy
 
-    required property var bridge
-    required property var batchModel
+    property var bridge
+    property var batchModel
 
     property int totalDone: 0
     property int totalCount: 0
