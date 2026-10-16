@@ -12,6 +12,10 @@ ApplicationWindow {
     title: "ClipForge Batch"
     color: theme.navy
 
+    Theme {
+        id: theme
+    }
+
     property int totalDone: 0
     property int totalCount: 0
 
