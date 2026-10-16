@@ -122,14 +122,25 @@ jobs:
       - name: NASM on PATH
         run: nasm -v
 
-      - name: Configure (Release)
-        run: cmake --preset windows-x64-release
+      - name: Install Qt 6.8.3
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          arch: win64_msvc2022_64
+          modules: 'qtshadertools'
+          cache: 'true'
+
+      - name: Configure (Release + Qt UI)
+        run: cmake --preset windows-x64-release -DCLIPFORGE_BUILD_QT_UI=ON
 
       - name: Build
         run: cmake --build --preset windows-x64-release
 
       - name: Test (CTest — must be green before publish)
         run: ctest --preset windows-x64-release --output-on-failure
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QML_DISABLE_DISK_CACHE: 1
 
       - name: Assert ASM backend linked
         shell: pwsh
@@ -143,6 +154,9 @@ jobs:
             Write-Error "Release requires the NASM SSE2 backend (got C++-only). Fix NASM/CMake before releasing."
             exit 1
           }
+
+      - name: QML lint
+        run: cmake --build --preset windows-x64-release --target all_qmllint
 
       - name: Extract CHANGELOG entry
         id: notes
@@ -170,6 +184,17 @@ jobs:
           Compress-Archive -Path artifacts/* -DestinationPath artifacts/ClipForge-$ver-windows-x64.zip -Force
           Get-ChildItem artifacts | Format-Table Name, Length
 
+      - name: Package Qt app (windeployqt)
+        shell: pwsh
+        run: |
+          $ver = "${{ needs.check-trigger.outputs.version }}"
+          New-Item -ItemType Directory -Force -Path dist-qt | Out-Null
+          Copy-Item build/release/clipforge-ui.exe dist-qt/
+          windeployqt --qmldir apps/qt/qml --release --dir dist-qt dist-qt/clipforge-ui.exe
+          Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vc_redist.x64.exe -OutFile dist-qt/vc_redist.x64.exe
+          Compress-Archive -Path dist-qt/* -DestinationPath "artifacts/ClipForge-$ver-windows-x64-qt.zip" -Force
+          Get-ChildItem artifacts | Format-Table Name, Length
+
       - name: 🏷️ Ensure Git tag exists
         shell: bash
         env:
@@ -194,8 +219,12 @@ jobs:
           body: ${{ steps.notes.outputs.body }}
           draft: false
           prerelease: false
+          # NOTE: softprops reads ONLY the `token:` input — an
+          # `env: GITHUB_TOKEN` override is silently ignored and the
+          # release would be authored by github-actions[bot] instead
+          # of ThanhNguyxnAgent[bot]. Always pass the App token here.
+          token: ${{ steps.app-token.outputs.token }}
           files: |
             artifacts/ClipForge-${{ needs.check-trigger.outputs.version }}-windows-x64.zip
             artifacts/ClipForge-cli-${{ needs.check-trigger.outputs.version }}-windows-x64.exe
-        env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+            artifacts/ClipForge-${{ needs.check-trigger.outputs.version }}-windows-x64-qt.zip

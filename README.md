@@ -307,7 +307,7 @@ Required secrets: `BOT_APP_ID`, `BOT_PRIVATE_KEY` (GitHub App for `ThanhNguyxnAg
 
 ## 🖥️ Qt Desktop App (Slice 1)
 
-A Qt 6 Quick batch GUI ships alongside the CLI: file queue, per-file and overall progress, cancel, and the same `EngineFacade` guarantees (collision guards, CSV reports). No local Qt needed — download the `ClipForge-windows-x64-qt` artifact from any green `CI 🧪` run (Actions tab) and run `clipforge-ui.exe` (ships `vc_redist.x64.exe` alongside). Waveform preview arrives in slice 2.
+A Qt 6 Quick batch GUI ships alongside the CLI: file queue, per-file and overall progress, cancel, and the same `EngineFacade` guarantees (collision guards, CSV reports). No local Qt needed — download `ClipForge-<ver>-windows-x64-qt.zip` from any [GitHub Release](https://github.com/ThanhNguyxnOrg/ClipForge/releases) (double-clickable `clipforge-ui.exe`, `vc_redist` bundled) or from a green `CI 🧪` run artifact. Waveform preview arrives in slice 2.
 
 ---
 

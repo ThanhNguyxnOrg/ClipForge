@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-10-16 🖥️
+
+Qt app joins the release assets.
+
+### Added
+- 🖥️ Release pipeline now builds the Qt 6 Quick app (`CLIPFORGE_BUILD_QT_UI=ON`),
+  packages it with `windeployqt` plus the official `vc_redist`, and attaches
+  `ClipForge-<ver>-windows-x64-qt.zip` to every GitHub Release.
+
 ## [0.1.0] - 2026-10-15 🎉
 
 First public MVP release.
