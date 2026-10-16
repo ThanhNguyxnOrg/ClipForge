@@ -140,6 +140,8 @@ ctest --preset windows-x64-release        # 🧪 run all tests
 
 ## 💻 CLI Reference
 
+> ⚠️ `clipforge-cli.exe` is a command-line tool: **open a terminal first** (Win+R → `powershell`, then `cd` to the folder with the `.exe`), paste a command below, and press Enter. Double-clicking it just flashes a window that closes immediately — that is normal, not a bug. Want a window you can click? Use the Qt app instead ([Qt Desktop App](#-qt-desktop-app-slice-1)).
+
 ```powershell
 # 🔍 Inspect a single file
 clipforge-cli.exe analyze input.wav [--backend auto|cpp|asm]

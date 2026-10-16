@@ -14,7 +14,7 @@ option(CLIPFORGE_ENABLE_ASM   "Enable NASM x86-64 SSE2 backend when available" O
 option(CLIPFORGE_BUILD_CLI    "Build clipforge-cli executable" ON)
 option(CLIPFORGE_BUILD_TESTS  "Build CTest unit and differential test suite" ON)
 option(CLIPFORGE_BUILD_BENCH  "Build clipforge-bench benchmark executable" ON)
-option(CLIPFORGE_BUILD_QT_UI  "Placeholder option for future Phase 2 Qt 6 Quick UI target" OFF)
+option(CLIPFORGE_BUILD_QT_UI  "Build Qt 6 Quick batch UI (slice 1: queue, progress, cancel)" OFF)
 
 set(CLIPFORGE_HAS_NASM_X64 0)
 if(CLIPFORGE_ENABLE_ASM AND WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)

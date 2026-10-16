@@ -60,7 +60,7 @@ The Qt slice needs Qt 6.8, installed only on CI (`install-qt-action@v4`, `win64_
 | `CLIPFORGE_BUILD_CLI` | `ON` | Build `clipforge-cli` |
 | `CLIPFORGE_BUILD_TESTS` | `ON` | Build `clipforge-tests` + CTest entries |
 | `CLIPFORGE_BUILD_BENCH` | `ON` | Build `clipforge-bench` |
-| `CLIPFORGE_BUILD_QT_UI` | `OFF` | Placeholder for Phase 2 Qt 6 UI |
+| `CLIPFORGE_BUILD_QT_UI` | `OFF` | Build Qt 6 Quick batch UI (slice 1) |
 
 ## 4. Troubleshooting 🩹
 

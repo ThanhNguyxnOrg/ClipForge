@@ -59,7 +59,7 @@ All contributors must follow our [Code of Conduct](CODE_OF_CONDUCT.md). Be kind,
   - WAV parsing → `tests/audio/test_wav_io.cpp`
   - Processing/facade → `tests/processing/test_processing.cpp`
   - Kernels → `tests/dsp/test_dsp_differential.cpp` (C++ vs ASM bit-exactness)
-- ✅ Gate: `clipforge-tests.exe all` must print 3/3 `[PASS]` lines.
+- ✅ Gate: `clipforge-tests.exe all` must print 4/4 `[PASS]` lines.
 - 🏭 Batch/CLI changes must include a manual smoke log in the PR (commands + exit codes + CSV excerpt).
 - 📈 DSP performance changes must include `clipforge-bench` CSV before/after.
 
