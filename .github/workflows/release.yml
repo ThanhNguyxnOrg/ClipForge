@@ -5,22 +5,13 @@ name: Release 📦
 # lumeo release.yml) with the audit fixes applied:
 # - Build + CTest + ASM gate run IN THIS WORKFLOW before any publish.
 #   A separately-green CI on the same SHA is never assumed.
-# - Version comes from ONE source of truth (CMakeLists.txt PROJECT VERSION)
-#   cross-checked against the trigger and CHANGELOG.md.
-# - Tags are `vX.Y.Z`; existing releases are updated idempotently, never duplicated.
+# - The central release controller commits the version and changelog before creating the tag.
+# - Tag creation and GitHub Release metadata are owned by the central release controller; this workflow builds and uploads assets only.
 # - Bot identity: ThanhNguyxnAgent[bot] via BOT_APP_ID / BOT_PRIVATE_KEY.
-# - Never put `[skip ci]` on a release commit — GitHub would skip this workflow.
+# - This workflow is triggered only by the central tag-creation event.
 
 on:
-  push:
-    branches: [main]
-    tags: ["v*"]
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Release tag (e.g. v0.1.0). Empty = read CMakeLists.txt."
-        required: false
-        default: ""
+  create:
 
 permissions:
   contents: write
@@ -158,20 +149,6 @@ jobs:
       - name: QML lint
         run: cmake --build --preset windows-x64-release --target all_qmllint
 
-      - name: Extract CHANGELOG entry
-        id: notes
-        shell: pwsh
-        run: |
-          $version = "${{ needs.check-trigger.outputs.version }}"
-          $clean = $version.TrimStart('v')
-          $log = Get-Content CHANGELOG.md -Raw
-          $pattern = "(?s)##\s*\[?" + [regex]::Escape($clean) + "\]?.*?\r?\n(.*?)(?=\r?\n##\s*\[?v?\d|\Z)"
-          if ($log -match $pattern) { $body = $Matches[1].Trim() }
-          else { $body = "Release ClipForge v$clean" }
-          Add-Content -Path $env:GITHUB_OUTPUT -Value "body<<EOF"
-          Add-Content -Path $env:GITHUB_OUTPUT -Value $body
-          Add-Content -Path $env:GITHUB_OUTPUT -Value "EOF"
-
       - name: Package artifacts
         shell: pwsh
         run: |
@@ -195,36 +172,13 @@ jobs:
           Compress-Archive -Path dist-qt/* -DestinationPath "artifacts/ClipForge-$ver-windows-x64-qt.zip" -Force
           Get-ChildItem artifacts | Format-Table Name, Length
 
-      - name: 🏷️ Ensure Git tag exists
+      - name: Upload assets to central draft release
         shell: bash
         env:
           TAG: ${{ needs.check-trigger.outputs.tag }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
-            git config user.name "ThanhNguyxnAgent[bot]"
-            git config user.email "296222857+thanhnguyxnagent[bot]@users.noreply.github.com"
-            git tag -a "$TAG" -m "Release $TAG"
-            git push origin "$TAG"
-            echo "Created and pushed $TAG"
-          else
-            echo "Tag $TAG already exists."
-          fi
-
-      - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: ${{ needs.check-trigger.outputs.tag }}
-          name: "ClipForge ${{ needs.check-trigger.outputs.tag }}"
-          body: ${{ steps.notes.outputs.body }}
-          draft: false
-          prerelease: false
-          # NOTE: softprops reads ONLY the `token:` input — an
-          # `env: GITHUB_TOKEN` override is silently ignored and the
-          # release would be authored by github-actions[bot] instead
-          # of ThanhNguyxnAgent[bot]. Always pass the App token here.
-          token: ${{ steps.app-token.outputs.token }}
-          files: |
-            artifacts/ClipForge-${{ needs.check-trigger.outputs.version }}-windows-x64.zip
-            artifacts/ClipForge-cli-${{ needs.check-trigger.outputs.version }}-windows-x64.exe
-            artifacts/ClipForge-${{ needs.check-trigger.outputs.version }}-windows-x64-qt.zip
+          gh release upload "$TAG" \
+            "artifacts/ClipForge-${{ needs.check-trigger.outputs.version }}-windows-x64.zip" \
+            "artifacts/ClipForge-cli-${{ needs.check-trigger.outputs.version }}-windows-x64.exe" \
+            "artifacts/ClipForge-${{ needs.check-trigger.outputs.version }}-windows-x64-qt.zip" --clobber
