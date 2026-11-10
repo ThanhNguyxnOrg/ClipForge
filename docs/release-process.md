@@ -1,67 +1,72 @@
-# Release Process 📦
+# ClipForge Release Process
 
-How ClipForge ships `vX.Y.Z` Windows x64 releases — and how to verify them like an engineer (not just a green badge).
+ClipForge uses the organization-level release controller in [`ThanhNguyxnOrg/.github`](https://github.com/ThanhNguyxnOrg/.github). This repository keeps its native Windows/MSVC/NASM/Qt build adapter; it does not own a second version-bump, tag-creation, or GitHub Release publisher.
 
-## 1. Version Sources (single truth + cross-checks)
+## Source of release policy
 
-| Source | File / Place | Example |
-|---|---|---|
-| 🔧 Build truth | `CMakeLists.txt` → `project(ClipForge VERSION 0.1.1 ...)` | `0.1.1` |
-| 📝 Human notes | `CHANGELOG.md` → `## [0.1.1] - YYYY-MM-DD` | must exist before release |
-| 🏷️ Git tag | `v0.1.1` (created by the workflow if missing) | `v` prefix, SemVer |
+The central `release-policy.json` profile for ClipForge defines:
 
-The `check-trigger` job **fails the run** if trigger version ≠ `CMakeLists.txt`, or if `CHANGELOG.md` lacks the entry. Fix the files, not the workflow.
+- Release branch: `main`
+- Release mode: central `release: vX.Y.Z` commit
+- Version source: `CMakeLists.txt` `project(... VERSION ...)`
+- Changelog: `CHANGELOG.md`
+- Build adapter: `Release 📦`
+- Required assets:
+  - `ClipForge-{version}-windows-x64.zip`
+  - `ClipForge-cli-{version}-windows-x64.exe`
+  - `ClipForge-{version}-windows-x64-qt.zip`
 
-## 2. Triggers
+The initial version and baseline commit are also recorded centrally. Do not independently increment the version, create the tag, or publish a second release from this repository.
 
-Release builds run on **any one** of:
+## Release lifecycle
 
-1. **Release commit to `main`** (preferred):
-   ```text
-   Release: v0.2.0
-   # or: chore(release): v0.2.0 / [release] v0.2.0 / bump: v0.2.0
-   ```
-   ⚠️ Do **not** append `[skip ci]` — GitHub would skip the release workflow itself.
-2. **Tag push**: `git tag -a v0.2.0 -m "Release v0.2.0" && git push origin v0.2.0`
-3. **Manual**: Actions → `Release 📦` → `Run workflow` → optional `tag` input (defaults to `CMakeLists.txt`).
+1. Conventional commits on `main` are evaluated by the central Release Controller. A release-worthy change is classified using the central SemVer policy.
+2. The controller updates `CMakeLists.txt` and `CHANGELOG.md` in a bot-authored `release: vX.Y.Z` commit.
+3. The central CI profile requires the ClipForge checks `🔖 Version consistency`, `🐧 g++ C++ backend (ubuntu)`, and `🪟 MSVC + NASM (windows)` to succeed on the release commit. Missing, failed, skipped, neutral or pending required checks hold the release.
+4. Once the release commit is green, the central controller creates the real `vX.Y.Z` Git tag and a draft GitHub Release. The tag-create event starts this repository's `Release 📦` adapter.
+5. The adapter validates the tag against `CMakeLists.txt` and `CHANGELOG.md`, then builds and verifies the Windows x64 artifacts in one job:
+   - MSVC environment and NASM are installed before CMake configuration.
+   - CMake configures the release preset with Qt UI enabled.
+   - The native build and CTest suite must pass.
+   - The benchmark must report `ASM Backend Compiled: YES`; a C++-only fallback is rejected.
+   - QML lint must pass.
+   - The CLI/benchmark ZIP, standalone CLI executable, and Qt deployment ZIP are packaged and uploaded to the central draft.
+6. The central controller waits for the exact configured workflow run on the exact tag commit. It publishes only after that run succeeds and all three centrally declared `requiredAssets` are present and uploaded.
 
-Dependabot pushes never trigger releases (`github.actor != 'dependabot[bot]'` guard).
+The local adapter is therefore responsible for native compilation, tests, packaging and upload. The central controller owns versioning, changelog commits, tags, release metadata, required-check policy, asset verification and final publication.
 
-## 3. What the Workflow Actually Proves
+## Verify a release
 
-`build-release` (windows-latest) does, **in order, in the same job**:
-
-1. 🐝 Install NASM **before** CMake configure (order is load-bearing).
-2. ⚙️ `cmake --preset windows-x64-release` → 🔨 build → 🧪 `ctest --preset windows-x64-release`.
-3. 🥊 **ASM gate**: `clipforge-bench` must print `ASM Backend Compiled: YES`. A silent C++ fallback fails the job — this is the fake-pass guard from the org audit.
-4. 📝 Extract the `CHANGELOG.md` section for the version as release notes.
-5. 📦 Package `ClipForge-<ver>-windows-x64.zip` (+ standalone `.exe`s), the Qt
-   `ClipForge-<ver>-windows-x64-qt.zip` (`windeployqt` + official `vc_redist`),
-   and ensure the `vX.Y.Z` tag exists (bot identity `ThanhNguyxnAgent[bot]`).
-6. 🚀 Publish via `softprops/action-gh-release` (idempotent: existing tag → assets updated).
-
-## 4. Verify a Release (API, not vibes)
+Run these commands from a machine with GitHub CLI authenticated:
 
 ```powershell
-# 1. Release exists with assets:
-gh release view v0.1.1 --repo ThanhNguyxnOrg/ClipForge
+$repo = "ThanhNguyxnOrg/ClipForge"
+$tag = "vX.Y.Z"
 
-# 2. Tag points at the right commit:
-git ls-remote --tags origin | Select-String 'v0\.1\.0'
+# Confirm the central release is public and list its assets.
+gh release view $tag --repo $repo
+gh api "repos/$repo/releases/tags/$tag" --jq '{draft: .draft, assets: [.assets[].name]}'
 
-# 3. Workflow run that produced it (logs: NASM line, CTest 4/4 core + 6/6 Qt, ASM YES):
-#    Actions → Release 📦 → run → build-release → steps above
+# Confirm the tag exists and resolve it to its commit.
+git ls-remote --tags "https://github.com/$repo.git" "refs/tags/$tag"
+
+# Inspect the project-specific build adapter runs.
+gh run list --repo $repo --workflow "Release 📦" --limit 10
 ```
 
-Lessons from the org audit, encoded here:
-- **PurgeKit v1.2.1**: green run still had Tauri-action input warnings — always open the artifact + release page, not just the checkmark.
-- **PurgeKit #141 / lumeo #79**: `npm ci` / unit-test reds must block merge and release — hence no `continue-on-error` on any gating step here.
-- **apidex-hub link-checker**: `continue-on-error: true` is for *reporting* jobs only; CI/release gates must fail loudly.
+A green CI run alone does not prove a release is ready. Check the public release page and verify all three manifest assets.
 
-## 5. Hotfix Checklist
+## Failure handling
 
-- [ ] Bump `CMakeLists.txt` `VERSION` + add `CHANGELOG.md` entry
-- [ ] `ctest --preset windows-x64-release` green locally (or via CI on the PR)
-- [ ] Push a `Release: vX.Y.Z` commit (no `[skip ci]`)
-- [ ] Watch the `Release 📦` run: configure → build → CTest → ASM YES → tag → published
-- [ ] `gh release view vX.Y.Z` shows the ZIP + EXE assets
+- If the adapter fails, the central controller leaves the draft unpublished. Fix the failing build/test/package step and rerun the failed adapter run.
+- If the adapter succeeds but one required asset is absent, the central controller keeps the draft unpublished. Do not create a replacement release or delete the draft manually.
+- If the public release is published, verify its manifest before announcing it.
+- Keep NASM ahead of CMake configure and retain the runtime ASM assertion; both prevent a false green build.
+
+## Maintainer checklist
+
+- [ ] Use Conventional Commits on `main`; let the central controller calculate the next version.
+- [ ] Keep the CMake version and changelog section valid for the generated release commit.
+- [ ] Keep the native CI job names aligned with the central `ci-policy.json` profile.
+- [ ] Keep all required output filenames aligned with the central `release-policy.json` manifest.
+- [ ] Verify the exact tag's adapter run and all public assets after publication.
