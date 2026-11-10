@@ -45,47 +45,22 @@ jobs:
 
   build-test-ubuntu:
     name: 🐧 g++ C++ backend (ubuntu)
-    runs-on: ubuntu-latest
     needs: version-check
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Install GCC 13
-        run: sudo apt-get update && sudo apt-get install -y g++-13
-
-      - name: Compile tests (C++ backend)
-        run: |
-          mkdir -p build/ci
-          g++-13 -std=c++23 -DCLIPFORGE_HAS_NASM_X64=0 -Iinclude \
-            src/dsp/cpp/kernels_cpp.cpp src/dsp/dispatch.cpp \
-            src/audio/wav_reader.cpp src/audio/wav_writer.cpp \
-            src/processing/analyzer.cpp src/processing/normalizer.cpp src/processing/silence_trimmer.cpp \
-            src/services/engine_facade.cpp \
-            tests/test_main.cpp tests/audio/*.cpp tests/processing/*.cpp tests/dsp/*.cpp tests/services/*.cpp \
-            -o build/ci/clipforge-tests
-
-      - name: Run tests (all suites)
-        run: ./build/ci/clipforge-tests all
-
-      - name: Compile CLI + bench
-        run: |
-          g++-13 -std=c++23 -DCLIPFORGE_HAS_NASM_X64=0 -Iinclude \
-            apps/cli/main.cpp \
-            src/dsp/cpp/kernels_cpp.cpp src/dsp/dispatch.cpp \
-            src/audio/wav_reader.cpp src/audio/wav_writer.cpp \
-            src/processing/analyzer.cpp src/processing/normalizer.cpp src/processing/silence_trimmer.cpp \
-            src/services/engine_facade.cpp \
-            -o build/ci/clipforge-cli
-          g++-13 -std=c++23 -O2 -DCLIPFORGE_HAS_NASM_X64=0 -Iinclude \
-            benchmarks/main_bench.cpp \
-            src/dsp/cpp/kernels_cpp.cpp src/dsp/dispatch.cpp \
-            src/audio/wav_reader.cpp src/audio/wav_writer.cpp \
-            src/processing/analyzer.cpp src/processing/normalizer.cpp src/processing/silence_trimmer.cpp \
-            src/services/engine_facade.cpp \
-            -o build/ci/clipforge-bench
-
-      - name: CLI smoke
-        run: ./build/ci/clipforge-cli --help
+    uses: ThanhNguyxnOrg/.github/.github/workflows/ci-cmake.yml@e9dacb727491a8c63b81dbb0157d2f6f934395c0
+    with:
+      job_name: 🐧 g++ C++ backend (ubuntu)
+      runner: ubuntu-latest
+      dependencies_command: sudo apt-get update && sudo apt-get install -y g++-13
+      configure_command: >-
+        cmake -S . -B build/ci
+        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_CXX_COMPILER=g++-13
+        -DCLIPFORGE_ENABLE_ASM=OFF
+        -DCLIPFORGE_BUILD_QT_UI=OFF
+      build_command: cmake --build build/ci --parallel
+      test_command: >-
+        ctest --test-dir build/ci --output-on-failure &&
+        ./build/ci/clipforge-cli --help
 
   build-test-windows:
     name: 🪟 MSVC + NASM (windows)
