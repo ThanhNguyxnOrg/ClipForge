@@ -92,13 +92,6 @@ jobs:
     if: needs.check-trigger.outputs.is_release == 'true'
     runs-on: windows-latest
     steps:
-      - name: Generate GitHub App Token
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ secrets.BOT_APP_ID }}
-          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
-
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
@@ -172,13 +165,29 @@ jobs:
           Compress-Archive -Path dist-qt/* -DestinationPath "artifacts/ClipForge-$ver-windows-x64-qt.zip" -Force
           Get-ChildItem artifacts | Format-Table Name, Length
 
-      - name: Upload assets to central draft release
-        shell: bash
-        env:
-          TAG: ${{ needs.check-trigger.outputs.tag }}
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+      - name: Stage required release assets
+        shell: pwsh
         run: |
-          gh release upload "$TAG" \
-            "artifacts/ClipForge-${{ needs.check-trigger.outputs.version }}-windows-x64.zip" \
-            "artifacts/ClipForge-cli-${{ needs.check-trigger.outputs.version }}-windows-x64.exe" \
-            "artifacts/ClipForge-${{ needs.check-trigger.outputs.version }}-windows-x64-qt.zip" --clobber
+          New-Item -ItemType Directory -Force -Path "dist/release" | Out-Null
+          Copy-Item "artifacts/ClipForge-${{ needs.check-trigger.outputs.version }}-windows-x64.zip" "dist/release/" -Force
+          Copy-Item "artifacts/ClipForge-cli-${{ needs.check-trigger.outputs.version }}-windows-x64.exe" "dist/release/" -Force
+          Copy-Item "artifacts/ClipForge-${{ needs.check-trigger.outputs.version }}-windows-x64-qt.zip" "dist/release/" -Force
+
+      - name: Upload packaged assets for the shared publisher
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-assets-windows-x64
+          path: dist/release/*
+          if-no-files-found: error
+
+  publish:
+    needs: [check-trigger, build-release]
+    if: needs.check-trigger.outputs.is_release == 'true'
+    uses: ThanhNguyxnOrg/.github/.github/workflows/release-publish.yml@5c7ae3eaec9f2cc4f555561630a4c157128754d1
+    with:
+      tag: ${{ needs.check-trigger.outputs.tag }}
+      artifact_pattern: release-assets-*
+      artifact_directory: dist/release
+    secrets:
+      BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
+      BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
