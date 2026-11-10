@@ -61,3 +61,10 @@ First public MVP release.
 [0.2.0]: https://github.com/ThanhNguyxnOrg/ClipForge/releases/tag/v0.2.0
 [0.1.1]: https://github.com/ThanhNguyxnOrg/ClipForge/releases/tag/v0.1.1
 [0.1.0]: https://github.com/ThanhNguyxnOrg/ClipForge/releases/tag/v0.1.0
+
+## [0.2.1] - 2026-11-10
+
+### Bug Fixes and Performance
+
+- grant artifact-read permissions to shared publisher ([33c8ef8](https://github.com/ThanhNguyxnOrg/ClipForge/commit/33c8ef8574f0fc50dfaff915d18cdbe2955fb315))
+
