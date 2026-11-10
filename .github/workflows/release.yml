@@ -186,7 +186,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    uses: ThanhNguyxnOrg/.github/.github/workflows/release-publish.yml@d552fc0ed83e771837ac3946d4d3346e0e4baf7c
+    uses: ThanhNguyxnOrg/.github/.github/workflows/release-publish.yml@47456eb0c467951cdaa48791d51e902b363e26be
     with:
       tag: ${{ needs.check-trigger.outputs.tag }}
       artifact_pattern: release-assets-*
