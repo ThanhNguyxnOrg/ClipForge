@@ -296,9 +296,7 @@ See [docs/architecture.md](docs/architecture.md) for the full layered-design wri
 | Workflow | File | What it proves |
 |---|---|---|
 | 🧪 CI | `.github/workflows/ci.yml` | Ubuntu g++ + Windows MSVC/NASM build, core CTest 4/4, **ASM gate** (`ASM Backend Compiled: YES`), version check, Qt 6.8 job (release/tag/dispatch-gated) with `qmllint` + offscreen CTest 6/6 + `windeployqt` artifact. No `continue-on-error` on gates. |
-| 🤖 Auto-merge | `.github/workflows/auto-merge-dependabot.yml` | Org-standard `ThanhNguyxnAgent[bot]` flow: safe updates auto-approved (`--auto --squash`, waits for CI), major prod updates flagged to `ThanhNguyxn07,RealThanhNguyxn`. |
 | 📦 Release | `.github/workflows/release.yml` | `Release: vX.Y.Z` / tag / dispatch → rebuild + retest + ASM gate **in the same job** → `vX.Y.Z` tag + ZIP/EXE assets + CHANGELOG notes. |
-| 👥 Auto-assign | `.github/workflows/auto-assign.yml` | Human-only routing via org reusable workflow. |
 | 📌 Dependabot | `.github/dependabot.yml` | `github-actions` weekly (Mon 06:00 Asia/Ho_Chi_Minh), cooldown 7d. |
 
 Required secrets: `BOT_APP_ID`, `BOT_PRIVATE_KEY` (GitHub App for `ThanhNguyxnAgent[bot]`).
