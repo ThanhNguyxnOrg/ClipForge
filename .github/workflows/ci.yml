@@ -45,7 +45,7 @@ jobs:
 
   build-test-ubuntu:
     needs: version-check
-    uses: ThanhNguyxnOrg/.github/.github/workflows/ci-cmake.yml@dde345c28f4fc33bb49ac46e46b8adc174c24f7e
+    uses: ThanhNguyxnOrg/.github/.github/workflows/ci-cmake.yml@a032059a58ff65456dcb98a223bd636b96a3d018
     with:
       job_name: 🐧 g++ C++ backend (ubuntu)
       runner: ubuntu-latest
