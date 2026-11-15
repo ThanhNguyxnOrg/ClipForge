@@ -299,7 +299,7 @@ See [docs/architecture.md](docs/architecture.md) for the full layered-design wri
 | 📦 Release | `.github/workflows/release.yml` | `Release: vX.Y.Z` / tag / dispatch → rebuild + retest + ASM gate **in the same job** → `vX.Y.Z` tag + ZIP/EXE assets + CHANGELOG notes. |
 | 📌 Dependabot | `.github/dependabot.yml` | `github-actions` weekly (Mon 06:00 Asia/Ho_Chi_Minh), cooldown 7d. |
 
-Required secrets: `BOT_APP_ID`, `BOT_PRIVATE_KEY` (GitHub App for `ThanhNguyxnAgent[bot]`).
+Required configuration: `BOT_APP_ID` (organization variable; numeric GitHub App ID) and `BOT_PRIVATE_KEY` (organization secret) for `ThanhNguyxnAgent[bot]`.
 
 ---
 
