@@ -184,7 +184,7 @@ jobs:
           Copy-Item "artifacts/ClipForge-${{ needs.check-trigger.outputs.version }}-windows-x64-qt.zip" "dist/release/" -Force
 
       - name: Upload packaged assets for the shared publisher
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: release-assets-windows-x64
           path: dist/release/*
