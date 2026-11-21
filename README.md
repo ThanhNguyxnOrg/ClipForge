@@ -83,7 +83,7 @@
 
 ### 📦 Safe Batch Processing 🏭
 `batch <input_dir> --operation normalize|trim|both --output-dir <out> --report summary.csv`
-- 📁 `--recursive` with relative-tree preservation
+- 📁 `--recursive` preserves the input tree and skips the output directory if it is inside the input tree
 - 👀 `--dry-run` for safe previews
 - 🚧 Collision detection (input == output, duplicate targets, existing files)
 - 📊 Machine-readable **CSV** report + progress callback + cooperative cancel token (surfaced in the Qt slice-1 app 🖥️)

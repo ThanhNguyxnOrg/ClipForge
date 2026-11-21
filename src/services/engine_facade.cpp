@@ -130,24 +130,38 @@ Result<BatchSummary> EngineFacade::run_batch(
         return make_error(ErrorCode::InvalidParameter, "Batch output directory cannot be empty.");
     }
 
-    const auto canon_in = std::filesystem::weakly_canonical(request.input_dir, ec);
     const auto canon_out = std::filesystem::weakly_canonical(request.output_dir, ec);
-    if (!ec && canon_in == canon_out) {
+    if (ec) {
+        return make_error(ErrorCode::IoError, "Cannot resolve batch output directory: " + ec.message());
+    }
+    const bool output_exists = std::filesystem::exists(canon_out, ec);
+    if (output_exists && std::filesystem::equivalent(request.input_dir, canon_out, ec)) {
         return make_error(
             ErrorCode::PathCollision,
             "Batch output directory must be distinct from the input directory."
         );
     }
+    if (ec) {
+        return make_error(ErrorCode::IoError, "Cannot inspect batch output directory: " + ec.message());
+    }
 
     std::vector<std::filesystem::path> wav_files;
     if (request.recursive) {
-        for (const auto& entry : std::filesystem::recursive_directory_iterator(request.input_dir, ec)) {
-            if (ec) {
-                return make_error(ErrorCode::IoError, "Directory traversal error: " + ec.message());
+        for (std::filesystem::recursive_directory_iterator it(request.input_dir, ec), end;
+             !ec && it != end; it.increment(ec)) {
+            if (output_exists && it->is_directory()) {
+                if (std::filesystem::equivalent(it->path(), canon_out, ec)) {
+                    it.disable_recursion_pending();
+                }
+                if (ec) {
+                    break;
+                }
+            } else if (it->is_regular_file() && has_wav_extension(it->path())) {
+                wav_files.push_back(it->path());
             }
-            if (entry.is_regular_file() && has_wav_extension(entry.path())) {
-                wav_files.push_back(entry.path());
-            }
+        }
+        if (ec) {
+            return make_error(ErrorCode::IoError, "Directory traversal error: " + ec.message());
         }
     } else {
         for (const auto& entry : std::filesystem::directory_iterator(request.input_dir, ec)) {
