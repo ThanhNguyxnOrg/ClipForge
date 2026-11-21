@@ -221,10 +221,7 @@ Status WavWriter::write_file(
         }
     }
 
-    if (options.overwrite_existing && std::filesystem::exists(output_path, ec)) {
-        std::filesystem::remove(output_path, ec);
-    }
-
+    // Rename over the destination directly so a failed replacement leaves it intact.
     std::filesystem::rename(temp_path, output_path, ec);
     if (ec) {
         std::error_code rm_ec;
