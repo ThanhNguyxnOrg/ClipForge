@@ -112,30 +112,25 @@ Result<processing::SilenceTrimResult> EngineFacade::trim_file(
     return trim_res;
 }
 
-Result<BatchSummary> EngineFacade::run_batch(
-    const BatchRequest& request,
-    const ProgressCallback& on_progress,
-    const std::atomic<bool>* cancel_token
+Result<std::vector<std::filesystem::path>> EngineFacade::discover_wav_files(
+    const std::filesystem::path& input_dir,
+    bool recursive,
+    const std::filesystem::path& excluded_dir
 ) {
     std::error_code ec;
-    if (!std::filesystem::exists(request.input_dir, ec) ||
-        !std::filesystem::is_directory(request.input_dir, ec)) {
+    if (!std::filesystem::is_directory(input_dir, ec)) {
         return make_error(
             ErrorCode::IoError,
-            "Batch input directory does not exist: " + request.input_dir.string()
+            "Batch input directory does not exist: " + input_dir.string()
         );
     }
 
-    if (request.output_dir.empty()) {
-        return make_error(ErrorCode::InvalidParameter, "Batch output directory cannot be empty.");
-    }
-
-    const auto canon_out = std::filesystem::weakly_canonical(request.output_dir, ec);
+    const auto canon_out = excluded_dir.empty() ? excluded_dir : std::filesystem::weakly_canonical(excluded_dir, ec);
     if (ec) {
         return make_error(ErrorCode::IoError, "Cannot resolve batch output directory: " + ec.message());
     }
-    const bool output_exists = std::filesystem::exists(canon_out, ec);
-    if (output_exists && std::filesystem::equivalent(request.input_dir, canon_out, ec)) {
+    const bool output_exists = !canon_out.empty() && std::filesystem::exists(canon_out, ec);
+    if (output_exists && std::filesystem::equivalent(input_dir, canon_out, ec)) {
         return make_error(
             ErrorCode::PathCollision,
             "Batch output directory must be distinct from the input directory."
@@ -146,36 +141,48 @@ Result<BatchSummary> EngineFacade::run_batch(
     }
 
     std::vector<std::filesystem::path> wav_files;
-    if (request.recursive) {
-        for (std::filesystem::recursive_directory_iterator it(request.input_dir, ec), end;
-             !ec && it != end; it.increment(ec)) {
-            if (output_exists && it->is_directory()) {
-                if (std::filesystem::equivalent(it->path(), canon_out, ec)) {
-                    it.disable_recursion_pending();
-                }
-                if (ec) {
-                    break;
-                }
-            } else if (it->is_regular_file() && has_wav_extension(it->path())) {
-                wav_files.push_back(it->path());
-            }
+    for (std::filesystem::recursive_directory_iterator it(input_dir, ec), end;
+         !ec && it != end; it.increment(ec)) {
+        const auto status = it->status(ec);
+        if (status.type() == std::filesystem::file_type::not_found) {
+            continue;
         }
         if (ec) {
-            return make_error(ErrorCode::IoError, "Directory traversal error: " + ec.message());
+            break;
         }
-    } else {
-        for (const auto& entry : std::filesystem::directory_iterator(request.input_dir, ec)) {
+        if (std::filesystem::is_directory(status)) {
+            if (!recursive || (output_exists && std::filesystem::equivalent(it->path(), canon_out, ec))) {
+                it.disable_recursion_pending();
+            }
             if (ec) {
-                return make_error(ErrorCode::IoError, "Directory traversal error: " + ec.message());
+                break;
             }
-            if (entry.is_regular_file() && has_wav_extension(entry.path())) {
-                wav_files.push_back(entry.path());
-            }
+        } else if (std::filesystem::is_regular_file(status) && has_wav_extension(it->path())) {
+            wav_files.push_back(it->path());
         }
+    }
+    if (ec) {
+        return make_error(ErrorCode::IoError, "Directory traversal error: " + ec.message());
     }
 
     std::sort(wav_files.begin(), wav_files.end());
+    return wav_files;
+}
 
+Result<BatchSummary> EngineFacade::run_batch(
+    const BatchRequest& request,
+    const ProgressCallback& on_progress,
+    const std::atomic<bool>* cancel_token
+) {
+    if (request.output_dir.empty()) {
+        return make_error(ErrorCode::InvalidParameter, "Batch output directory cannot be empty.");
+    }
+    auto inputs = discover_wav_files(request.input_dir, request.recursive, request.output_dir);
+    if (!inputs) {
+        return std::unexpected(inputs.error());
+    }
+    const auto& wav_files = *inputs;
+    std::error_code ec;
     BatchSummary summary{};
     summary.total_discovered = wav_files.size();
     std::set<std::filesystem::path> planned_outputs;

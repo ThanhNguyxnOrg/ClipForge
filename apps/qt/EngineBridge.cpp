@@ -4,7 +4,6 @@
 
 #include <QtGlobal>
 #include <QDir>
-#include <QDirIterator>
 #include <QFileInfo>
 #include <QMetaObject>
 
@@ -57,14 +56,13 @@ int EngineBridge::lookupRow(const QString &path) const {
     return lowerRowByPath_.value(norm.toLower(), -1);
 }
 
-QStringList EngineBridge::scanWavFiles(const QString &inputDir, bool recursive) const {
+QStringList EngineBridge::scanWavFiles(const QString &inputDir, bool recursive, const QString &outputDir) const {
     QStringList out;
-    const auto flags = recursive ? QDirIterator::Subdirectories : QDirIterator::NoIteratorFlags;
-    QDirIterator it(inputDir, QDir::Files | QDir::NoDotAndDotDot, flags);
-    while (it.hasNext()) {
-        it.next();
-        if (it.fileInfo().suffix().compare(u"wav"_s, Qt::CaseInsensitive) == 0) {
-            out.append(normalize(it.filePath()));
+    const auto files = clipforge::services::EngineFacade::discover_wav_files(
+        toFsPath(inputDir), recursive, toFsPath(outputDir));
+    if (files) {
+        for (const auto &file : *files) {
+            out.append(normalize(fromFsPath(file)));
         }
     }
     return out;
@@ -111,7 +109,7 @@ void EngineBridge::startBatch(
         return;
     }
 
-    const QStringList files = scanWavFiles(inputDir, recursive);
+    const QStringList files = scanWavFiles(inputDir, recursive, outputDir);
     rowByPath_.clear();
     lowerRowByPath_.clear();
     activeRow_ = -1;

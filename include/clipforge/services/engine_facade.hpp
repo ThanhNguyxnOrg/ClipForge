@@ -95,6 +95,12 @@ public:
         bool overwrite_existing = false
     );
 
+    [[nodiscard]] static Result<std::vector<std::filesystem::path>> discover_wav_files(
+        const std::filesystem::path& input_dir,
+        bool recursive,
+        const std::filesystem::path& excluded_dir = {}
+    );
+
     [[nodiscard]] static Result<BatchSummary> run_batch(
         const BatchRequest& request,
         const ProgressCallback& on_progress = nullptr,
