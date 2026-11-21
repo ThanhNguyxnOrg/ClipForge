@@ -178,6 +178,32 @@ void run_batch_tests() {
 
         std::filesystem::remove_all(base, ec);
     }
+
+    // 8. A recursive rerun skips its nested output, not similarly named input directories.
+    {
+        const auto base = std::filesystem::temp_directory_path() / "clipforge_test_batch_recursive";
+        const auto source = base / "out-takes" / "a.wav";
+        std::error_code ec;
+        std::filesystem::remove_all(base, ec);
+        std::filesystem::create_directories(source.parent_path(), ec);
+        write_test_wav(source);
+
+        auto req = make_request(base, base / "." / "out");
+        req.recursive = true;
+        req.overwrite_existing = true;
+        for (int run = 0; run < 2; ++run) {
+            auto res = EngineFacade::run_batch(req);
+            CF_REQUIRE(res.has_value());
+            CF_REQUIRE(res->total_discovered == 1);
+            CF_REQUIRE(res->succeeded_count == 1);
+            CF_REQUIRE(res->records.size() == 1);
+            CF_REQUIRE(res->records.front().input_path == source);
+            CF_REQUIRE(std::filesystem::exists(base / "out" / "out-takes" / "a.wav"));
+        }
+        CF_REQUIRE(!std::filesystem::exists(base / "out" / "out"));
+
+        std::filesystem::remove_all(base, ec);
+    }
 }
 
 } // namespace clipforge::tests

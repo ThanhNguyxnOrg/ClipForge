@@ -30,7 +30,7 @@ public:
         bool recursive,
         bool dryRun);
     Q_INVOKABLE void cancel();
-    Q_INVOKABLE QStringList scanWavFiles(const QString &inputDir, bool recursive) const;
+    Q_INVOKABLE QStringList scanWavFiles(const QString &inputDir, bool recursive, const QString &outputDir = {}) const;
 
 signals:
     void fileProgress(int completed, int total, const QString &currentFile);

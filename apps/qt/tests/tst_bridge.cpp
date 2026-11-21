@@ -108,6 +108,25 @@ private slots:
         QCOMPARE(QDir::cleanPath(model.fileAt(0)), QDir::cleanPath(wav));
     }
 
+    void recursive_queue_skips_nested_output() {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        const QString source = writeGoodWav(dir, u"a.wav"_s);
+        QVERIFY(!source.isEmpty());
+        QVERIFY(QDir(dir.path()).mkdir(u"out"_s));
+        QVERIFY(!writeGoodWav(dir, u"out/old.wav"_s).isEmpty());
+
+        BatchQueueModel model;
+        EngineBridge bridge;
+        bridge.setQueueModel(&model);
+        QSignalSpy finished(&bridge, &EngineBridge::batchFinished);
+        bridge.startBatch(dir.path(), dir.path() + u"/out"_s, u"normalize"_s, -1.0, -45.0, true, true);
+        QVERIFY(waitFor(finished, 30000));
+        QCOMPARE(model.rowCount(), 1);
+        QCOMPARE(QDir::cleanPath(model.fileAt(0)), QDir::cleanPath(source));
+        QCOMPARE(model.statusAt(0), u"done"_s);
+    }
+
     void failed_file_continues() {
         QTemporaryDir dir;
         QVERIFY(dir.isValid());
