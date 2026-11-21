@@ -68,3 +68,11 @@ First public MVP release.
 
 - grant artifact-read permissions to shared publisher ([33c8ef8](https://github.com/ThanhNguyxnOrg/ClipForge/commit/33c8ef8574f0fc50dfaff915d18cdbe2955fb315))
 
+## [0.2.2] - 2026-11-21
+
+### Bug Fixes and Performance
+
+- preserve the destination if replacement fails ([c797234](https://github.com/ThanhNguyxnOrg/ClipForge/commit/c7972349056316f0447cd4d7b689688c064adf16))
+- skip the output tree during recursive discovery ([fab527a](https://github.com/ThanhNguyxnOrg/ClipForge/commit/fab527a88f0b5b19362f19781579e34444d25f29))
+- use batch discovery to populate the queue ([8414650](https://github.com/ThanhNguyxnOrg/ClipForge/commit/8414650dc4fc0ceee9c9de23c91ffb2d066ba81b))
+
