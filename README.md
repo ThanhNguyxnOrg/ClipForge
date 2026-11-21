@@ -62,7 +62,7 @@
 - 🧩 Tolerates real-world chunks (`JUNK`, `LIST`, `bext`, `data`-before-`fmt `), odd-size padding bytes
 - 🧬 Supports standard `WAVE_FORMAT_EXTENSIBLE` GUIDs
 - 🚫 Rejects truncated files, inconsistent `blockAlign`/`byteRate`, and non-finite (`NaN`/`Infinity`) samples
-- 💾 Crash-safe writes: **temp file + atomic rename**, source-overwrite guard (`PathCollision`), no-overwrite-by-default (`TargetExists`)
+- 💾 Writes use a **temp file + atomic rename**: if replacement fails, the previous WAV stays in place. Source-overwrite guard (`PathCollision`), no-overwrite-by-default (`TargetExists`).
 
 ### 🔍 Audio Analysis 📊
 `clipforge-cli analyze input.wav`

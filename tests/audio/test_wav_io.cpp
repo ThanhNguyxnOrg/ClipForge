@@ -2,10 +2,13 @@
 #include "clipforge/audio/wav_reader.hpp"
 #include "clipforge/audio/wav_writer.hpp"
 
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <filesystem>
 #include <limits>
+#include <string>
 #include <vector>
 
 namespace clipforge::tests {
@@ -90,6 +93,34 @@ void run_wav_io_tests() {
                 CF_REQUIRE_NEAR(decoded->samples()[i], samples[i], tol);
             }
         }
+    }
+
+    // Overwrite replaces a file but must not unlink the destination if rename cannot replace it.
+    {
+        namespace fs = std::filesystem;
+        const auto id = std::chrono::steady_clock::now().time_since_epoch().count();
+        const auto dir = fs::temp_directory_path() / ("clipforge_wav_replace_" + std::to_string(id));
+        CF_REQUIRE(fs::create_directory(dir));
+        const auto output = dir / "out.wav";
+        const WavWriteOptions overwrite{.overwrite_existing = true};
+        const AudioBuffer replacement({}, {0.5f});
+
+        CF_REQUIRE(WavWriter::write_file(output, AudioBuffer({}, {-0.5f})).has_value());
+        CF_REQUIRE(WavWriter::write_file(output, replacement, overwrite).has_value());
+        const auto decoded = WavReader::read_file(output);
+        CF_REQUIRE(decoded.has_value());
+        CF_REQUIRE(decoded->sample_count() == 1);
+        CF_REQUIRE(decoded->samples()[0] == 0.5f);
+
+        CF_REQUIRE(fs::remove(output));
+        CF_REQUIRE(fs::create_directory(output));
+        const auto failed = WavWriter::write_file(output, replacement, overwrite);
+        CF_REQUIRE(!failed.has_value());
+        CF_REQUIRE(failed.error().code == ErrorCode::IoError);
+        CF_REQUIRE(fs::is_directory(output));
+        CF_REQUIRE(fs::remove(output));
+        CF_REQUIRE(fs::is_empty(dir)); // No temporary file left behind.
+        fs::remove(dir);
     }
 
     // Odd-sized JUNK chunk + reordered chunks (data before fmt)
